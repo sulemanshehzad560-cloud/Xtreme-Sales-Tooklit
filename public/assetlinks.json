@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.netlify.xtremesalestoolkit.twa",
+        "sha256_cert_fingerprints": ["00:AB:F5:52:3C:5A:FA:F1:89:E1:C1:7C:3B:0D:CD:53:6A:E6:96:BF:28:12:D4:7B:04:3C:BC:6C:A6:7E:0B:D7"]
+      }
+    }]
