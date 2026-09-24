@@ -1,77 +1,67 @@
-XTREME SALES TOOLKIT v10 - SECURE VERSION WITH ZOHO WORKDRIVE
-================================================================
+XTREME v1.20 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+=======================================================================
+
+This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
+GitHub repository (xtreme-sales-toolkit). The COC site can be retired afterwards.
+Your existing users, Zoho WorkDrive connection and saved quotations/invoices carry over.
+The Android app keeps working: assetlinks.json is the Sales Toolkit one
+(package app.netlify.xtremesalestoolkit.twa) and is unchanged.
 
 WHAT'S NEW
-- Convert documents by reference number:
-  Invoice tab > "Convert a quotation": type the quotation number (e.g. 145) > Load.
-  Receipt tab > "Load from a document": choose Quotation or Invoice, type the number > Load.
-  Items, prices, discount and customer details fill in, and everything stays editable.
-  A quotation or invoice is saved for converting when its PDF is made (email, share or
-  Save to Zoho WorkDrive). The latest saved documents show as quick buttons.
-- Sign-in page. Only 2 accounts, no sign-ups.
-  First sign-in: username admin, password admin (all small letters).
-  You are then asked to set your own username and a new password.
-  5 wrong passwords lock that username for 15 minutes.
-- Settings (gear icon, top right): change password, create/disable the 2nd user,
-  connect Zoho WorkDrive, sign out.
-- Every quotation, invoice, receipt and contract PDF you email or share is uploaded
-  to Zoho WorkDrive automatically, into folders like:
-     Your folder / Invoices / 2026-09 September / Tax Invoice XFM-INV-0080.pdf
-  There is also a "Save to Zoho WorkDrive" button on each document.
+- Loading screen, then sign-in, then a home screen with a tile for every section
+  the user is allowed to open. Tapping a tile opens it and the bottom bar appears.
+- Every document is step-by-step: fill one part, tap Next. The last step is a
+  full preview of the PDF. Submit then:
+    1. ALWAYS saves the PDF to Zoho WorkDrive (users can't switch this off), and
+    2. emails it to the customer if "Email a copy" is on. You can add several
+       email addresses. The sending address is chosen per document type and
+       can be changed before sending (e.g. quotations from sales@, invoices from accounts@).
+  If you edit and send the same document again, the email subject starts with "Updated:".
+- Users and access (admin only): up to 10 accounts, choose which sections each
+  user can open, block/unblock, delete. Normal users never see Zoho or email
+  settings and can't disconnect anything. The server enforces this too.
 
-IMPORTANT: THIS VERSION MUST BE DEPLOYED THROUGH GITHUB, NOT DRAG-AND-DROP
-Netlify drag-and-drop cannot run the server part (login + Zoho). Setup once from a computer:
+UPDATE FROM YOUR PHONE (GitHub website, about 5 minutes)
+ Tip: in Chrome, tap the 3 dots > tick "Desktop site" so GitHub shows every button.
+ 1. Open github.com > your repository xtreme-sales-toolkit.
+ 2. In the MAIN folder: Add file > Upload files > choose
+       package.json   README.txt
+    > Commit changes.
+ 3. Open the folder netlify > functions: Add file > Upload files > choose
+       api.mjs
+    > Commit changes.
+ 4. Open the folder public: Add file > Upload files > choose
+       index.html   sw.js   manifest.webmanifest   assetlinks.json
+    > Commit changes.
+    (icon-192.png, icon-512.png, _headers, _redirects are already there. Leave them.)
+ 5. Netlify redeploys by itself in 1-2 minutes. Check:
+       https://YOUR-SITE.netlify.app/api/ping      shows {"ok":true,"server":true}
+       https://YOUR-SITE.netlify.app/.well-known/assetlinks.json   shows the JSON text
+ 6. Open the app. If you still see the old design, close it fully and open it again.
 
-STEP 1 - Put the files on GitHub (5 min)
- 1. Unzip this file. You get a folder "xtreme-sales-toolkit" containing:
-    netlify.toml, package.json, README.txt, public/, netlify/
- 2. Go to github.com, sign up / sign in, tap "+" > "New repository".
-    Name: xtreme-sales-toolkit. Choose PRIVATE. Create.
- 3. On the new repository page click "uploading an existing file".
- 4. Open the unzipped folder, select EVERYTHING INSIDE it (the 2 folders and 3 files)
-    and drag them into the GitHub page. Click "Commit changes".
-    Check that GitHub shows: netlify, public, netlify.toml, package.json, README.txt
+SET UP AUTOMATIC CUSTOMER EMAIL (admin, once)
+ The app sends through your own Zoho Mail, so customers see your real addresses.
+ A. Zoho Mail Admin Console > Users > (the sales mailbox) > Mail aliases:
+    make sure every address you want to send from is an alias of that ONE mailbox,
+    e.g. sales@xtreme-fm.com (the mailbox), accounts@xtreme-fm.com, noreply@xtreme-fm.com.
+ B. Sign in to that mailbox > My Account (accounts.zoho.com) > Security >
+    App passwords > Generate new password > name it "Xtreme app" > copy it.
+    (If you don't see App passwords, turn on two-factor sign-in first.)
+ C. Make sure SMTP access is allowed: Zoho Mail > Settings > Mail Accounts > IMAP/SMTP.
+ D. In the app: Settings > Customer email (Zoho Mail)
+       SMTP server: smtppro.zoho.com   (company domain accounts)
+       Zoho Mail login: sales@xtreme-fm.com
+       App password: paste it
+       Send-from addresses: sales@xtreme-fm.com, accounts@xtreme-fm.com, noreply@xtreme-fm.com
+    Tap Connect Zoho Mail. Then open "Which address sends each document", pick the
+    default for each type (e.g. Quotations = sales@, Invoices = accounts@), Save,
+    and use "Send a test to…" to check.
 
-STEP 2 - Connect GitHub to your Netlify site (3 min)
- 1. Netlify > your Sales Toolkit site > Site configuration > Build & deploy >
-    "Link repository" (or "Link site to Git") > GitHub > choose xtreme-sales-toolkit.
- 2. Netlify reads netlify.toml by itself. Leave the build command empty and click Deploy.
- 3. Wait for the green "Published" label. Keep the same site so the address and the
-    Android app (assetlinks.json is included in public/) keep working.
- From now on, to update the app: upload the changed files to GitHub. Netlify redeploys itself.
+ZOHO WORKDRIVE
+ Already connected from the Sales Toolkit. New folder: Completion Certificates.
+ To reconnect: Settings > Zoho WorkDrive (steps as before: api-console.zoho.com >
+ Self Client > scope WorkDrive.files.ALL > code; folder ID from the folder's web address).
 
-STEP 3 - Sign in
- Open the site. The badge must say "Secure server sign-in".
- (If it says "On-device sign-in", the server part isn't running - repeat Step 2.)
- Sign in with admin / admin and set your own username and password straight away.
-
-STEP 4 - Connect Zoho WorkDrive (admin, 5 min)
- 1. On a computer go to api-console.zoho.com (use the data centre you log in to,
-    e.g. api-console.zoho.com, .eu, .in or .ae).
- 2. Add Client > "Self Client" > Create. Copy the Client ID and Client Secret.
- 3. In the Self Client, open "Generate Code":
-      Scope:          WorkDrive.files.ALL
-      Time duration:  10 minutes
-      Description:    Xtreme Sales Toolkit
-    Click Create and copy the code.
- 4. In Zoho WorkDrive, create or open the folder where documents should go
-    (e.g. "Xtreme Documents"). Its web address ends in a long ID - copy that ID.
- 5. In the app: Settings > Zoho WorkDrive. Choose the data centre, paste Client ID,
-    Client Secret, the code and the folder ID. Tap Connect within 10 minutes.
- 6. The status turns green: "Connected". Done - uploads are automatic from now on.
-    The top bar shows "Drive · Auto". Tap it to open Settings.
-
-STEP 5 - Second user
- Settings > Users > type a username and password > Create user.
- They must change the password on their first sign-in.
-
-ANDROID APP (ADDRESS BAR)
- assetlinks.json is in public/ (package app.netlify.xtremesalestoolkit.twa).
- Check https://YOUR-SITE.netlify.app/.well-known/assetlinks.json shows the JSON text,
- then uninstall and reinstall the APK.
-
-SECURITY NOTES
- - Passwords are stored hashed (scrypt) on the Netlify server, never in the page.
- - The Zoho keys are stored only on the server; the phone never sees them.
- - Sessions last 12 hours (30 days if "Keep me signed in" is ticked).
-   Changing a password signs that account out everywhere else.
+NOTE ON OLD COC CERTIFICATES
+ Certificates saved on the old COC site stay in its storage and in WorkDrive.
+ "Open a saved certificate" in v1.20 lists certificates made in this app from now on.
