@@ -189,7 +189,7 @@ select{min-height:44px}
 
 .brand{appearance:none;border:0;background:none;padding:0;cursor:pointer;display:block;flex-shrink:0}.brand img{display:block}
 
-/* ===================== Xtreme 1.20 — high-tech black & gold ===================== */
+/* ===================== Xtreme 1.21 — high-tech black & gold ===================== */
 :root,:root[data-theme],:root:not([data-theme="light"]){
   --bg:#000;--surface:rgba(20,18,14,.78);--surface2:#0d0c0a;--line:rgba(212,175,90,.16);--line2:#2b261d;
   --text:#F6F0E3;--muted:#A69D8A;--gold:#E2C170;--goldfill:#D4AF5A;--gold-hi:#F6DE9E;--gold-lo:#9C7A2E;--onGold:#120F08;--focus:#F6DE9E;
@@ -286,7 +286,7 @@ body.at-home .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))!importan
 .h-lbl{font-size:15px;font-weight:600;color:#d9d0bc;margin:0 2px 12px}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .tile{appearance:none;text-align:left;font:inherit;color:var(--text);cursor:pointer;position:relative;overflow:hidden;
-  background:linear-gradient(160deg,rgba(35,31,23,.92),rgba(12,11,9,.92));border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 14px 15px;min-height:148px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;
+  background:linear-gradient(160deg,rgba(35,31,23,.92),rgba(12,11,9,.92));border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 14px 15px;min-height:148px;display:flex;flex-direction:column;justify-content:flex-start;gap:14px;
   transition:transform .18s var(--ease),border-color .2s,box-shadow .2s;animation:tilein .55s var(--ease) both}
 .tile:nth-child(2){animation-delay:.05s}.tile:nth-child(3){animation-delay:.1s}.tile:nth-child(4){animation-delay:.15s}.tile:nth-child(5){animation-delay:.2s}.tile:nth-child(6){animation-delay:.25s}
 @keyframes tilein{from{opacity:0;transform:translateY(14px) scale(.98)}}
@@ -411,7 +411,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
  <div class="sp-core"><svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="rg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6DE9E"/><stop offset=".6" stop-color="#D4AF5A" stop-opacity=".5"/><stop offset="1" stop-color="#D4AF5A" stop-opacity="0"/></linearGradient></defs><circle cx="50" cy="50" r="47" fill="none" stroke="url(#rg1)" stroke-width="2" stroke-linecap="round" stroke-dasharray="190 106"/></svg><svg class="ring2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" fill="none" stroke="#D4AF5A" stroke-width=".8" stroke-dasharray="1.5 4"/></svg><img src="icon-512.png" alt="" width="104" height="104"></div>
  <div class="sp-word">XTREME</div><div class="sp-sub">Facilities Management</div>
  <div class="sp-bar"><i id="sp-bar"></i></div><div class="sp-msg" id="sp-msg">Starting</div></div>
- <div class="sp-ver">Version 1.20</div></div>
+ <div class="sp-ver">Version 1.21</div></div>
 <div id="gate" class="gate">
 <div class="g-bg" aria-hidden="true"><div class="g-grid"></div><div class="g-glow"></div><div class="g-scan"></div></div>
 <div class="g-wrap">
@@ -441,7 +441,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
       </form>
     </div>
   </div>
-  <p class="g-foot">Xtreme version 1.20 · Authorised staff only</p>
+  <p class="g-foot">Xtreme version 1.21 · Authorised staff only</p>
 </div>
 </div>
 <div class="sheet" id="sheet" hidden><div class="sheet-box" id="sheet-box" role="dialog" aria-modal="true" aria-label="Settings"></div></div>
@@ -457,7 +457,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
 <div class="sys"><div class="sysc" id="sys-drive"><i></i><div><b>Zoho WorkDrive</b><small></small></div></div><div class="sysc" id="sys-mail"><i></i><div><b>Customer email</b><small></small></div></div></div>
 <h3 class="h-lbl">What would you like to do?</h3>
 <div class="tiles" id="tiles"></div>
-<p class="h-foot">Xtreme Facilities Management · version 1.20</p>
+<p class="h-foot">Xtreme Facilities Management · version 1.21</p>
 </section>
 <section id="p-quote" class="page wiz" data-title="Quotation" data-label="Quote" hidden>
 <div class="step" data-title="Services">
@@ -987,8 +987,15 @@ function pdfKit(title,fromAlias){
     k.txt(`${PHONE}  |  ${PHONE2}  |  ${fromAlias||EMAIL}  |  ${WEB}`,105,292.5,{s:8,c:BLACK,a:"center"});
   };
   k.ensure=h=>{if(k.y+h>BOTTOM){doc.addPage();k.decor();k.y=34}};
-  k.pair=(l1,v1,l2,v2)=>{const h=7;k.box(L,k.y,32,h,LAB);k.box(L+32,k.y,62,h);k.box(L+94,k.y,34,h,LAB);k.box(L+128,k.y,W-128,h);
-    k.txt(l1,L+2,k.y+4.7,{b:1});k.txt(v1,L+34,k.y+4.7,{mw:58});k.txt(l2,L+96,k.y+4.7,{b:1});k.txt(v2,L+130,k.y+4.7,{mw:W-132});k.y+=h};
+  /* rows grow to fit wrapped values, so long names, emails and addresses never spill out of their cells */
+  k.lines=(ls,x,y,lh=3.9)=>{ls.forEach((t,i)=>doc.text(t,x,y+i*lh))};
+  k.pair=(l1,v1,l2,v2)=>{const a=k.split(v1||"",58,9),b=k.split(v2||"",W-132,9),h=Math.max(7,Math.max(a.length,b.length)*3.9+3.1);k.ensure(h);
+    k.box(L,k.y,32,h,LAB);k.box(L+32,k.y,62,h);k.box(L+94,k.y,34,h,LAB);k.box(L+128,k.y,W-128,h);
+    k.fit(l1,L+2,k.y+4.7,29);k.fit(l2,L+96,k.y+4.7,31);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(20,20,20);k.lines(a,L+34,k.y+4.7);k.lines(b,L+130,k.y+4.7);k.y+=h};
+  k.wide=(l,v)=>{const a=k.split(v||"",W-36,9),h=Math.max(7,a.length*3.9+3.1);k.ensure(h);k.box(L,k.y,32,h,LAB);k.box(L+32,k.y,W-32,h);
+    k.fit(l,L+2,k.y+4.7,29);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(20,20,20);k.lines(a,L+34,k.y+4.7);k.y+=h};
+  k.row=(l,v,o={})=>{const lw=o.lw||38,s=o.s||9,lh=s*0.43,a=k.split(v||"",W-lw-4,s,o.b),h=Math.max(o.h||6.5,a.length*lh+2.7);k.ensure(h);
+    k.box(L,k.y,lw,h,LAB);k.box(L+lw,k.y,W-lw,h);k.fit(l,L+2,k.y+4.4,lw-3,{s:o.ls||9});doc.setFont("helvetica",o.b?"bold":"normal");doc.setFontSize(s);doc.setTextColor(20,20,20);k.lines(a,L+lw+2,k.y+4.4,lh);k.y+=h};
   k.fit=(t,x,y,maxW,o={})=>{let sz=o.s||9;doc.setFont("helvetica","bold");doc.setFontSize(sz);while(sz>6&&doc.getTextWidth(String(t))>maxW){sz-=0.25;doc.setFontSize(sz)}k.txt(t,x,y,{...o,b:1,s:sz})};
   k.decor();return k;
 }
@@ -1030,7 +1037,7 @@ const SCOPE={
 function scopeOf(l){if(l.custom)return [];const off=l.p==="Office";let s=(l.idx===0?(off?SCOPE.offNormal:SCOPE.resNormal):(off?SCOPE.offDeep:SCOPE.resDeep)).slice();if(l.idx===2)s.push("Visits carried out as per the annual maintenance contract schedule");return s}
 function defaultScope(q){
   if(q.n===1)return scopeOf(q.lines[0]).join("\n");
-  const groups=[];q.lines.forEach(l=>{if(l.custom)return;const key=(l.p==="Office"?"o":"r")+l.idx;let g=groups.find(x=>x.key===key);if(!g){g={key,titles:[],items:scopeOf(l)};groups.push(g)}g.titles.push(l.title)});
+  const groups=[];q.lines.forEach(l=>{if(l.custom)return;const key=(l.p==="Office"?"o":"r")+l.idx;let g=groups.find(x=>x.key===key);if(!g){g={key,titles:[],items:scopeOf(l)};groups.push(g)}if(!g.titles.includes(l.title))g.titles.push(l.title)});
   return groups.map(g=>g.titles.join(" / ")+":\n"+g.items.join("\n")).join("\n");
 }
 const DEFAULT_TERMS=["Payment: 50% advance on confirmation of the order, balance 50% on completion of the works.","Validity: This quotation is valid for 15 days from the date of issue.","Power, water and access to the property to be provided by the client free of charge.","Any work outside the above scope will be quoted separately.","VAT is charged at 5% in accordance with UAE VAT law."].join("\n");
@@ -1090,7 +1097,7 @@ function buildQuotePdf(){
   k.pair("Tel",g("q-phone"),"Email",g("qp-email"));
   const subj=`Subject: ${q.title}${g("qp-loc")?", "+g("qp-loc"):""}`;
   const sl=k.split(subj,W-4,9,1),sh=Math.max(7,sl.length*4.2+3);
-  k.box(L,k.y,W,sh,CREAM);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(sl,L+2,k.y+4.7);k.y+=sh+4;
+  k.box(L,k.y,W,sh,CREAM);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(sl,L+2,k.y+4.7);k.y+=sh+6;
   const greet=`Dear ${g("q-name")||"Sir/Madam"},`;k.txt(greet,L,k.y,{s:9.5});k.y+=5.5;
   k.txt("Thank you for your enquiry. We are pleased to submit our commercial offer for your review as follows:",L,k.y,{s:9.5,mw:W});k.y+=7;
   k.band(L,k.y,W,6,"COMMERCIAL OFFER");k.y+=6;
@@ -1105,13 +1112,14 @@ function buildQuotePdf(){
   const scopeLines=[];scope.forEach(s=>{if(multi&&/:$/.test(s)){scopeLines.push({h:1,t:s});return}const w=multi?W-7:C[1]-C[0]-7;k.split("•  "+s,w,8.3).forEach((l,j)=>scopeLines.push({t:j?"    "+l:l}))});
   if(!multi){
     const l=q.lines[0],titleLines=k.split(l.title,C[1]-C[0]-4,9,1);
-    const rowH=4+titleLines.length*4.3+(scopeLines.length?3.5+scopeLines.length*3.8:0)+2;
-    k.ensure(Math.min(rowH,200));
-    for(let i=0;i<4;i++)k.box(C[i],k.y,C[i+1]-C[i],rowH);
-    let yy=k.y+5;doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(titleLines,C[0]+2,yy);yy+=titleLines.length*4.3;
-    if(scopeLines.length){k.txt("Scope of work:",C[0]+2,yy+1.5,{b:1,s:8.3,c:GR});yy+=5.5;doc.setFont("helvetica","normal");doc.setFontSize(8.3);doc.setTextColor(40,40,40);doc.text(scopeLines.map(x=>x.t),C[0]+3,yy,{lineHeightFactor:1.3})}
-    k.txt(String(l.visits),(C[1]+C[2])/2,k.y+5,{a:"center",s:9});k.txt(money(l.unit),C[3]-2,k.y+5,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+5,{a:"right",s:9,b:1});
-    k.y+=rowH;
+    const body=[{t:titleLines,h:titleLines.length*4.3}];if(scopeLines.length){body.push({lab:1,h:5.5});scopeLines.forEach(x=>body.push({t:[x.t],h:3.8,s:1}))}
+    let first=true;k.ensure(Math.min(4+body.slice(0,4).reduce((a,b)=>a+b.h,0)+2,120));
+    while(body.length){let n=0,hh=4;while(n<body.length&&(n===0||k.y+hh+body[n].h+2<=272)){hh+=body[n].h;n++}const rowH=hh+2,part=body.splice(0,n);
+      for(let i=0;i<4;i++)k.box(C[i],k.y,C[i+1]-C[i],rowH);
+      let yy=k.y+5;part.forEach(b=>{if(b.lab){k.txt("Scope of work:",C[0]+2,yy+1.5,{b:1,s:8.3,c:GR});yy+=5.5;return}
+        if(b.s){doc.setFont("helvetica","normal");doc.setFontSize(8.3);doc.setTextColor(40,40,40);doc.text(b.t,C[0]+3,yy);yy+=3.8}else{doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(b.t,C[0]+2,yy);yy+=b.h}});
+      if(first){k.txt(String(l.visits),(C[1]+C[2])/2,k.y+5,{a:"center",s:9});k.txt(money(l.unit),C[3]-2,k.y+5,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+5,{a:"right",s:9,b:1})}
+      k.y+=rowH;first=false;if(body.length){doc.addPage();k.decor();k.y=34;head()}}
   }else{
     q.lines.forEach((l,i)=>{const tl=k.split(l.title,C[2]-C[1]-4,9,1),h=Math.max(7,tl.length*4.3+3);
       if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
@@ -1125,18 +1133,18 @@ function buildQuotePdf(){
   k.ensure(tot.length*6.5+9);
   tot.forEach(([lb,v])=>{k.box(TC,k.y,VC-TC,6.5,LAB);k.box(VC,k.y,R-VC,6.5);k.txt(lb,VC-2,k.y+4.4,{b:1,s:8.5,a:"right"});k.txt(v,R-2,k.y+4.4,{b:1,s:8.5,a:"right"});k.y+=6.5});
   doc.setFillColor(...BLACK);doc.rect(TC,k.y,R-TC,8.5,"F");k.fit(q.vatOn?"TOTAL INCLUDING VAT (AED)":"TOTAL (AED)",VC-2,k.y+5.6,VC-TC-4,{s:9,a:"right",c:[255,255,255]});k.fit(money(q.total),R-2,k.y+5.6,R-VC-4,{s:10,a:"right",c:GOLDF});
-  k.y+=8.5;k.txt(amountWords(q.total),L,k.y-2,{i:1,s:8.3,c:GR,mw:TC-L-4});k.y+=6;
-  if(multi&&scopeLines.length){k.ensure(20);k.band(L,k.y,W,6,"SCOPE OF WORK");k.y+=9;
+  k.y+=8.5;{doc.setFont("helvetica","italic");doc.setFontSize(8.3);doc.setTextColor(...GR);const aw=doc.splitTextToSize(amountWords(q.total),TC-L-4);k.lines(aw,L,k.y-2-(aw.length-1)*3.6,3.6)}k.y+=6;
+  if(multi&&scopeLines.length){k.ensure(20);k.band(L,k.y,W,6,"SCOPE OF WORK");k.y+=10;
     scopeLines.forEach(x=>{const lh=x.h?4.8:3.9;if(k.y+lh>272){doc.addPage();k.decor();k.y=34}
       if(x.h){k.y+=1;const hl=k.split(x.t,W-4,8.6,1);doc.setFont("helvetica","bold");doc.setFontSize(8.6);doc.setTextColor(20,20,20);doc.text(hl,L+2,k.y);k.y+=hl.length*4.3}
       else{doc.setFont("helvetica","normal");doc.setFontSize(8.3);doc.setTextColor(40,40,40);doc.text(x.t,L+3,k.y);k.y+=3.9}});k.y+=4}
   const terms=g("qp-terms").split("\n").map(s=>s.trim()).filter(Boolean);
   if(terms.length){const tl=[];terms.forEach(t=>{k.split("•  "+t,W-6,8.5).forEach((l,j)=>tl.push(j?"    "+l:l))});
-    k.ensure(8+tl.length*4.2);k.band(L,k.y,W,6,"TERMS & CONDITIONS");k.y+=9;doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(30,30,30);doc.text(tl,L+2,k.y,{lineHeightFactor:1.35});k.y+=tl.length*4.2+4}
+    k.ensure(8+tl.length*4.2);k.band(L,k.y,W,6,"TERMS & CONDITIONS");k.y+=10;doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(30,30,30);doc.text(tl,L+2,k.y,{lineHeightFactor:1.35});k.y+=tl.length*4.2+4}
   const close=k.split("We trust the above meets your requirements and look forward to working with you. Should you need any clarification, please do not hesitate to contact us.",W,9);
-  k.ensure(close.length*4.3+42);doc.setTextColor(20,20,20);doc.text(close,L,k.y);k.y+=close.length*4.3+6;
-  const hw=W/2-4;k.txt("For Xtreme Facilities Management",L,k.y,{b:1,s:9});k.txt("Accepted by (Client)",L+W/2+4,k.y,{b:1,s:9});k.y+=22;
-  if(sealOn("qq")){try{const sw=40;doc.addImage(SIGN,"PNG",L+2,k.y-2-sw*SIGN_R,sw,sw*SIGN_R);const sd=27;doc.addImage(STAMP,"PNG",L+48,k.y-sd*STAMP_R+6,sd,sd*STAMP_R)}catch(e){}}
+  k.ensure(close.length*4.3+46);doc.setTextColor(20,20,20);doc.text(close,L,k.y);k.y+=close.length*4.3+6;
+  const hw=W/2-4;k.txt("For Xtreme Facilities Management",L,k.y,{b:1,s:9});k.txt("Accepted by (Client)",L+W/2+4,k.y,{b:1,s:9});k.y+=25;
+  if(sealOn("qq")){try{const sw=40;doc.addImage(SIGN,"PNG",L+2,k.y-2-sw*SIGN_R,sw,sw*SIGN_R);const sd=24;doc.addImage(STAMP,"PNG",L+50,k.y-sd*STAMP_R+1.5,sd,sd*STAMP_R)}catch(e){}}
   doc.setDrawColor(...LINE);doc.line(L,k.y,L+hw,k.y);doc.line(L+W/2+4,k.y,R,k.y);k.y+=4.5;
   const sender=$("qq-sender").value.trim(),pos=$("qq-pos").value.trim();k.txt([sender,pos].filter(Boolean).join(" / ")||"Name / Position / Signature",L,k.y,{s:8,c:GR});k.txt("Name / Signature / Date",L+W/2+4,k.y,{s:8,c:GR});
   return doc;
@@ -1180,24 +1188,25 @@ function buildInvoicePdf(){
   const from=$("ii-from").value,k=pdfKit("TAX INVOICE",from),{doc,L,R,W}=k;const g=id=>$(id).value.trim();
   k.pair("Invoice Date",dfmt(g("i-date")),"Tax Invoice No.",g("i-no"));k.pair("Terms",g("i-terms"),"Project",g("i-proj"));k.pair("Due Date",dfmt(g("i-due")),"Client's P.O. No.",g("i-po"));
   k.y+=4;k.band(L,k.y,W,6,"BILL TO");k.y+=6;
-  [["Client / Company",g("i-client")],["Address",g("i-addr")],["Tel / Fax",g("i-tel")],["Email",g("i-email")],["Client TRN",g("i-trn")]].forEach(([l,v])=>{k.box(L,k.y,38,6.5,LAB);k.box(L+38,k.y,W-38,6.5);k.txt(l,L+2,k.y+4.4,{b:1});k.txt(v,L+40,k.y+4.4,{mw:W-42});k.y+=6.5});
+  [["Client / Company",g("i-client")],["Address",g("i-addr")],["Tel / Fax",g("i-tel")],["Email",g("i-email")],["Client TRN",g("i-trn")]].forEach(([l,v])=>k.row(l,v));
   k.y+=4;const C=[L,L+10,L+92,L+112,L+132,L+158,R];
   const head=()=>{doc.setFillColor(...BLACK);doc.rect(L,k.y,W,9,"F");[["No.",0,"center"],["Item & Description",1,"left"],["Unit",2,"center"],["Frequency",3,"center"],["Per Visit Rate (AED)",4,"center"],["Total Amount (AED)",5,"center"]].forEach(([t,i,a])=>{const x=a==="center"?(C[i]+C[i+1])/2:C[i]+2;const ls=k.split(t,C[i+1]-C[i]-2,8,1);doc.setTextColor(255,255,255);doc.text(ls,x,k.y+(ls.length>1?3.6:5.6),{align:a})});k.y+=9};
-  head();k.box(L,k.y,20,6.5,LAB);k.box(L+20,k.y,W-20,6.5);k.txt("Coverage",L+2,k.y+4.4,{b:1,s:8.5});k.txt(g("i-cov"),L+22,k.y+4.4,{b:1,s:8.5});k.y+=6.5;
+  head();if(g("i-cov")){const cv=k.split(g("i-cov"),W-24,8.5,1),ch=Math.max(6.5,cv.length*3.7+2.8);k.box(L,k.y,20,ch,LAB);k.box(L+20,k.y,W-20,ch);k.txt("Coverage",L+2,k.y+4.4,{b:1,s:8.5});doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(20,20,20);k.lines(cv,L+22,k.y+4.4,3.7);k.y+=ch}
   const filled=items.filter(it=>it.d||it.r);const rows=Math.max(filled.length,5);let n=0;
   for(let j=0;j<rows;j++){const it=filled[j];const dl2=it?k.split(it.d,C[2]-C[1]-3):[];const h=Math.max(6.5,dl2.length*3.8+2.7);
-    if(k.y+h>200&&j<filled.length){doc.addPage();k.decor();k.y=34;head()}else if(k.y+h>200)break;
+    if(it&&k.y+h>272){doc.addPage();k.decor();k.y=34;head()}else if(!it&&k.y+h>200)break;
     for(let c=0;c<6;c++)k.box(C[c],k.y,C[c+1]-C[c],h);
     if(it){n++;k.txt(n,(C[0]+C[1])/2,k.y+4.4,{a:"center",s:8.5,c:GR});doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(20,20,20);doc.text(dl2,C[1]+1.5,k.y+4.4);
       k.txt(it.u,(C[2]+C[3])/2,k.y+4.4,{a:"center",s:8.5});k.txt(it.f===""?"1":it.f,(C[3]+C[4])/2,k.y+4.4,{a:"center",s:8.5});
       if(it.r!=="")k.txt(money(num(it.r)),C[5]-2,k.y+4.4,{a:"right",s:8.5});k.txt(it.r!==""?money(lineTotal(it)):"",R-2,k.y+4.4,{a:"right",s:8.5,b:1})}
     k.y+=h}
-  const {net,vat,total}=inv();if(k.y+24>200){doc.addPage();k.decor();k.y=34}
-  const WC=C[2];
-  k.box(L,k.y,WC-L,6.5,LAB);k.txt("Total Amount in Words",L+2,k.y+4.4,{b:1,s:8.5});k.box(L,k.y+6.5,WC-L,15.5);
-  {const wl=k.split(amountWords(total),WC-L-4,8.5,1);doc.setTextColor(20,20,20);doc.text(wl,L+2,k.y+11-(wl.length-1)*2);}
-  [["Net Amount",money(net)],["5% VAT",money(vat)],["Total Invoice Amount with VAT",money(total)]].forEach(([l,v],i)=>{const h=i===2?9:6.5,yy=k.y+(i===0?0:i===1?6.5:13),big=i===2;k.box(WC,yy,C[5]-WC,h,big?null:LAB);k.box(C[5],yy,R-C[5],h,null);k.txt(l,C[5]-2,yy+h/2+1.3,{b:1,s:big?9:8.5,a:"right"});k.txt(v,R-2,yy+h/2+1.3,{b:1,s:big?10:8.5,a:"right"})});
-  k.y+=26;if(k.y+91>276){doc.addPage();k.decor();k.y=34}
+  const {net,vat,total}=inv();
+  const WC=C[2],wl=k.split(amountWords(total),WC-L-4,8.5,1),wb=Math.max(15.5,wl.length*4+5),bh=6.5+wb;
+  if(k.y+bh>272){doc.addPage();k.decor();k.y=34}
+  k.box(L,k.y,WC-L,6.5,LAB);k.txt("Total Amount in Words",L+2,k.y+4.4,{b:1,s:8.5});k.box(L,k.y+6.5,WC-L,wb);
+  doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(20,20,20);k.lines(wl,L+2,k.y+6.5+(wb-(wl.length-1)*4)/2+1.2,4);
+  [["Net Amount",money(net)],["5% VAT",money(vat)],["Total Invoice Amount with VAT",money(total)]].forEach(([l,v],i)=>{const h=i===2?bh-13:6.5,yy=k.y+i*6.5,big=i===2;k.box(WC,yy,C[5]-WC,h,big?null:LAB);k.box(C[5],yy,R-C[5],h,null);k.txt(l,C[5]-2,yy+h/2+1.3,{b:1,s:big?9:8.5,a:"right"});k.fit(v,R-2,yy+h/2+1.3,R-C[5]-4,{s:big?10:8.5,a:"right"})});
+  k.y+=bh+4;if(k.y+91>276){doc.addPage();k.decor();k.y=34}
   k.band(L,k.y,W,6,"PLEASE MAKE PAYMENT TO");k.y+=6;
   [["Account Name","Xtreme Facilities Management - Sole Proprietorship L.L.C."],["Bank Name","RAK Bank"],["Branch Name","Khalidiya, Abu Dhabi"],["Account Number","0303523550001"],["Account Currency","AED"],["IBAN","AE120400000303523550001"]].forEach(([l,v])=>{k.box(L,k.y,38,5.5,LAB);k.box(L+38,k.y,W-38,5.5);k.txt(l,L+2,k.y+3.9,{b:1,s:8.5});k.txt(v,L+40,k.y+3.9,{s:8.5});k.y+=5.5});
   k.box(L,k.y,W,10);k.txt("In case of any discrepancies, please contact us immediately. If no objection is received within 2 days from the receipt of this invoice, the invoice shall be considered valid and accepted.",L+2,k.y+4,{i:1,s:8,mw:W-4});k.y+=13;
@@ -1275,7 +1284,7 @@ function buildContractPdf(){
   k.pair("Tel",g("c-tel"),"Email",g("c-email"));
   k.pair("Location",g("c-loc"),"Contract Type",`${ctType}, ${ctTerm==="Fixed"?"fixed term":"open-ended"}`);
   k.pair("Start Date",dfmt(g("c-start")),"End Date",ctTerm==="Fixed"?dfmt(g("c-end")):"Open (until notice)");
-  k.y+=4;k.txt(`Dear ${g("c-name")||"Sir/Madam"},`,L,k.y,{s:9.5});k.y+=5.5;
+  k.y+=5.5;k.txt(`Dear ${g("c-name")||"Sir/Madam"},`,L,k.y,{s:9.5});k.y+=5.5;
   const intro=k.split(`Xtreme Facilities Management is pleased to provide the following ${ctType.toLowerCase()} maintenance services under the terms below.`,W,9.5);doc.setFont("helvetica","normal");doc.setFontSize(9.5);doc.setTextColor(20,20,20);doc.text(intro,L,k.y);k.y+=intro.length*4.5+3;
   k.band(L,k.y,W,6,"SERVICES & PRICING");k.y+=6;
   const C=[L,L+10,L+106,L+130,L+156,R];
@@ -1291,15 +1300,15 @@ function buildContractPdf(){
   doc.setFillColor(...BLACK);doc.rect(TC,k.y,R-TC,8.5,"F");k.fit(`TOTAL PER ${P.toUpperCase()}${c.vatOn?" INCL. VAT":""} (AED)`,VC-2,k.y+5.6,LW,{s:8.8,a:"right",c:[255,255,255]});k.fit(money(c.total),R-2,k.y+5.6,R-VC-4,{s:10,a:"right",c:GOLDF});k.y+=8.5;
   if(c.n){k.box(TC,k.y,VC-TC,6.5,LAB);k.box(VC,k.y,R-VC,6.5);k.fit(`Contract period (${per}s)`,VC-2,k.y+4.4,LW,{s:8.5,a:"right"});k.txt(String(c.n),R-2,k.y+4.4,{b:1,s:8.5,a:"right"});k.y+=6.5;
     doc.setFillColor(...GOLDF);doc.rect(TC,k.y,R-TC,8.5,"F");k.fit("TOTAL CONTRACT VALUE (AED)",VC-2,k.y+5.6,LW,{s:9,a:"right",c:BLACK});k.fit(money(c.value),R-2,k.y+5.6,R-VC-4,{s:10,a:"right",c:BLACK});k.y+=8.5}
-  {const wl=k.split("Amount in words: "+(c.n?amountWords(c.value):amountWords(c.total)+` per ${per}`),W,8.3);k.y+=4.5;doc.setFont("helvetica","italic");doc.setFontSize(8.3);doc.setTextColor(...GR);doc.text(wl,R,k.y,{align:"right"});k.y+=wl.length*3.8+4}
+  {const wl=k.split("Amount in words: "+(c.n?amountWords(c.value):amountWords(c.total)+` per ${per}`),W,8.3);k.y+=4.5;doc.setFont("helvetica","italic");doc.setFontSize(8.3);doc.setTextColor(...GR);doc.text(wl,R-1,k.y,{align:"right"});k.y+=wl.length*3.8+4}
   const block=(title,txt)=>{const rows=[];txt.split("\n").map(s=>s.trim()).filter(Boolean).forEach(s=>{if(/:$/.test(s)){rows.push({h:1,t:s});return}k.split("•  "+s,W-7,8.3).forEach((l,j)=>rows.push({t:j?"    "+l:l}))});if(!rows.length)return;
-    if(k.y+16>279){doc.addPage();k.decor();k.y=34}k.band(L,k.y,W,6,title);k.y+=9;rows.forEach(x=>{const lh=x.h?5:3.9;if(k.y+lh>279){doc.addPage();k.decor();k.y=34}
+    if(k.y+16>279){doc.addPage();k.decor();k.y=34}k.band(L,k.y,W,6,title);k.y+=10;rows.forEach(x=>{const lh=x.h?5:3.9;if(k.y+lh>279){doc.addPage();k.decor();k.y=34}
       if(x.h){k.y+=1;const hl=k.split(x.t,W-4,8.6,1);doc.setFont("helvetica","bold");doc.setFontSize(8.6);doc.setTextColor(20,20,20);doc.text(hl,L+2,k.y);k.y+=hl.length*4.3}
       else{doc.setFont("helvetica","normal");doc.setFontSize(8.3);doc.setTextColor(40,40,40);doc.text(x.t,L+3,k.y);k.y+=3.9}});k.y+=4};
   block("SCOPE OF WORK",g("c-scope"));block("TERMS & CONDITIONS",g("c-terms"));
-  if(k.y+38>279){doc.addPage();k.decor();k.y=34}const hw=W/2;k.band(L,k.y,hw,6,"FOR XTREME FACILITIES MANAGEMENT");k.band(L+hw,k.y,hw,6,"FOR THE CLIENT");k.y+=6;k.box(L,k.y,hw,26);k.box(L+hw,k.y,hw,26);
-  if(sealOn("cc")){try{const sw=40;doc.addImage(SIGN,"PNG",L+4,k.y+24-2-sw*SIGN_R,sw,sw*SIGN_R);const sd=23;doc.addImage(STAMP,"PNG",L+hw-sd-8,k.y+1.5,sd,sd*STAMP_R)}catch(e){}}
-  k.y+=26;const sender=$("cc-sender").value.trim(),pos=$("cc-pos").value.trim();
+  if(k.y+36>280){doc.addPage();k.decor();k.y=34}const hw=W/2;k.band(L,k.y,hw,6,"FOR XTREME FACILITIES MANAGEMENT");k.band(L+hw,k.y,hw,6,"FOR THE CLIENT");k.y+=6;k.box(L,k.y,hw,24);k.box(L+hw,k.y,hw,24);
+  if(sealOn("cc")){try{const sw=40;doc.addImage(SIGN,"PNG",L+4,k.y+22-2-sw*SIGN_R,sw,sw*SIGN_R);const sd=22;doc.addImage(STAMP,"PNG",L+hw-sd-8,k.y+1,sd,sd*STAMP_R)}catch(e){}}
+  k.y+=24;const sender=$("cc-sender").value.trim(),pos=$("cc-pos").value.trim();
   k.box(L,k.y,hw,5.5);k.box(L+hw,k.y,hw,5.5);k.txt([sender,pos].filter(Boolean).join(" / ")||"Name / Designation / Signature",L+2,k.y+3.8,{i:1,s:7.5,c:GR});k.txt("Name / Signature / Company Stamp / Date",L+hw+2,k.y+3.8,{i:1,s:7.5,c:GR});
   return doc}
 function cWa(){const c=ct(),per=PER[ctType];const t=[`Hi ${$("c-name").value.trim()||"there"},`,"",`Here is your ${ctType.toLowerCase()} service contract proposal from Xtreme Facilities Management:`,""];
@@ -1331,13 +1340,14 @@ function buildReceiptPdf(){
   const from=$("rr-from").value,k=pdfKit("PAYMENT RECEIPT",from),{doc,L,R,W}=k;const g=id=>$(id).value.trim();const {amt,due,bal}=rc();const m=$("r-method").value;
   k.pair("Receipt Date",dfmt(g("r-date")),"Receipt No.",g("r-no"));
   k.pair("Payment Method",m,"Against Invoice",g("r-inv"));
-  if(m!=="Cash")k.pair($("r-refl").textContent,g("r-ref"),"","");
+  if(m!=="Cash")k.wide($("r-refl").textContent,g("r-ref"));
   k.y+=4;k.band(L,k.y,W,6,"RECEIVED FROM");k.y+=6;
-  [["Client / Company",g("r-from")],["Tel",g("r-tel")],["Email",g("r-email")]].forEach(([l,v])=>{k.box(L,k.y,38,6.5,LAB);k.box(L+38,k.y,W-38,6.5);k.txt(l,L+2,k.y+4.4,{b:1});k.txt(v,L+40,k.y+4.4,{mw:W-42});k.y+=6.5});
+  [["Client / Company",g("r-from")],["Tel",g("r-tel")],["Email",g("r-email")]].forEach(([l,v])=>k.row(l,v));
   k.y+=4;k.band(L,k.y,W,6,"PAYMENT DETAILS");k.y+=6;
   const fl=k.split(g("r-for")||"Payment received",W-44,9),fh=Math.max(7,fl.length*4.3+3);
   k.box(L,k.y,38,fh,LAB);k.box(L+38,k.y,W-38,fh);k.txt("Being payment for",L+2,k.y+4.7,{b:1});doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(fl,L+40,k.y+4.7);k.y+=fh;
-  k.box(L,k.y,38,9,LAB);k.box(L+38,k.y,W-38,9);k.txt("Amount in Words",L+2,k.y+5.8,{b:1});k.txt(amountWords(amt),L+40,k.y+5.8,{b:1,i:1,s:9,mw:W-42});k.y+=13;
+  {doc.setFont("helvetica","bolditalic");doc.setFontSize(9);const aw=doc.splitTextToSize(amountWords(amt),W-42),ah=Math.max(9,aw.length*4.2+4.8);
+    k.box(L,k.y,38,ah,LAB);k.box(L+38,k.y,W-38,ah);k.txt("Amount in Words",L+2,k.y+ah/2+1.2,{b:1});doc.setFont("helvetica","bolditalic");doc.setFontSize(9);doc.setTextColor(20,20,20);k.lines(aw,L+40,k.y+(ah-(aw.length-1)*4.2)/2+1.2,4.2);k.y+=ah+4}
   const C3=L+W-80;
   if(due!=null){[["Invoice Total",money(due)],["Amount Received",money(amt)],["Balance Due",money(Math.max(bal,0))]].forEach(([l,v])=>{k.box(C3,k.y,50,6.5,LAB);k.box(C3+50,k.y,R-C3-50,6.5);k.txt(l,C3+48,k.y+4.4,{b:1,s:8.5,a:"right"});k.txt(v,R-2,k.y+4.4,{b:1,s:8.5,a:"right"});k.y+=6.5})}
   doc.setFillColor(...BLACK);doc.rect(C3,k.y,R-C3,9,"F");k.fit("AMOUNT RECEIVED (AED)",C3+48,k.y+5.9,46,{s:9,a:"right",c:[255,255,255]});k.fit(money(amt),R-2,k.y+5.9,R-C3-54,{s:11,a:"right",c:GOLDF});k.y+=18;
@@ -1512,7 +1522,7 @@ $("kn-client").addEventListener("input",()=>{$("kn-client").dataset.touched="1"}
 /* PDF */
 function buildCocPdf(){
   const from=$("cf-from").value,k=pdfKit("CERTIFICATE OF COMPLETION",from),{doc,L,R,W}=k;
-  const row=(l,v)=>{k.ensure(6.5);k.box(L,k.y,38,6.5,LAB);k.box(L+38,k.y,W-38,6.5);k.txt(l,L+2,k.y+4.4,{b:1});k.txt(v,L+40,k.y+4.4,{mw:W-42});k.y+=6.5};
+  const row=(l,v)=>k.row(l,v);
   const sec=(t)=>{k.ensure(14);k.y+=3;k.band(L,k.y,W,6,t);k.y+=6};
   k.pair("Date of Completion",dfmt(g("kc-date")),"COC No.",g("kc-no"));
   k.pair("Time of Service",g("kc-time"),"Job ID / Ref.",g("kc-job"));
@@ -1543,7 +1553,8 @@ function buildCocPdf(){
   if(photos.length){const cols=3,gap=3,pw=(W-gap*(cols-1))/cols;const ph=pw*0.75;let i=0;
     if(k.y+10+ph>279){doc.addPage();k.decor();k.y=34}k.band(L,k.y,W,6,"JOB PHOTOS");k.y+=8;
     while(i<photos.length){if(k.y+ph>279){doc.addPage();k.decor();k.y=34}for(let c=0;c<cols&&i<photos.length;c++,i++){const p=photos[i],x=L+c*(pw+gap);const s=Math.min(pw/p.w,ph/p.h),w=p.w*s,h=p.h*s;doc.setFillColor(...LAB);doc.rect(x,k.y,pw,ph,"F");try{doc.addImage(p.src,"JPEG",x+(pw-w)/2,k.y+(ph-h)/2,w,h)}catch(e){}}k.y+=ph+gap}}
-  k.ensure(8);k.txt("Thank you for choosing Xtreme Facilities Management. For any concerns, please contact us on "+PHONE+".",105,Math.min(k.y+4,279),{i:1,s:8,c:GR,a:"center"});
+  /* courtesy line only where it fits: never start a new page just for it */
+  if(k.y+4<=279)k.txt("Thank you for choosing Xtreme Facilities Management. For any concerns, please contact us on "+PHONE+".",105,k.y+4,{i:1,s:8,c:GR,a:"center"});
   return doc}
 let cPanel=null;
 cPanel=sendPanel("cf",{mount:"kc-send",kind:"Completion Certificates",date:()=>$("kc-date").value,docType:"coc",snap:snapshot,
@@ -1573,7 +1584,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.20";
+const VERSION="1.21";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};

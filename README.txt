@@ -1,4 +1,4 @@
-XTREME v1.20 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+XTREME v1.21 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
 =======================================================================
 
 This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
@@ -7,7 +7,20 @@ Your existing users, Zoho WorkDrive connection and saved quotations/invoices car
 The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
 
-WHAT'S NEW
+WHAT'S NEW IN 1.21 (production check)
+- PDFs: table rows now grow to fit long names, emails, addresses, project names,
+  coverage and amount-in-words text, so nothing overlaps or runs outside its box
+  (quotation, invoice, contract, receipt and COC).
+- A single-service quotation with a very long scope now continues on the next
+  page instead of running into the footer.
+- Invoice items use the whole page before moving on; the words/total box sizes itself.
+- Receipt reference row spans the full width; spacing under section bars fixed;
+  stamp no longer covers the signature caption on quotations.
+- WorkDrive: if a saved folder is deleted or moved, uploads find or recreate it
+  instead of failing every time.
+- Home tiles line up.
+
+WHAT'S NEW IN 1.20
 - Loading screen, then sign-in, then a home screen with a tile for every section
   the user is allowed to open. Tapping a tile opens it and the bottom bar appears.
 - Every document is step-by-step: fill one part, tap Next. The last step is a
