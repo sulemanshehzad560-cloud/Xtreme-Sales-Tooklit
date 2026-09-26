@@ -122,15 +122,24 @@ async function uploadPdf(st, cfg, { kind, date, filename, data, sig, dedupe }) {
   if (sig && dedupe) { const prev = await st.get(dk, { type: "json" }); if (prev && prev.sig === sig) return { skipped: true, path: prev.path }; }
   const m = /^(\d{4})-(\d{2})/.exec(date || "") || /^(\d{4})-(\d{2})/.exec(new Date().toISOString());
   const monthName = `${m[1]}-${m[2]} ${MONTHS[+m[2] - 1]}`;
-  const kindId = await ensureFolder(st, cfg, cfg.folderId, kind);
-  const monthId = await ensureFolder(st, cfg, kindId, monthName);
   const name = String(filename || "document.pdf").replace(/[\\/:*?"<>|]/g, "-").slice(0, 150);
-  const fd = new FormData();
-  fd.append("filename", encodeURIComponent(name));
-  fd.append("parent_id", monthId);
-  fd.append("override-name-exist", "true");
-  fd.append("content", new Blob([Buffer.from(data, "base64")], { type: "application/pdf" }), name);
-  const r = await zfetch(st, cfg, "/workdrive/api/v1/upload", { method: "POST", body: fd, headers: { Accept: "application/json" } });
+  // Folder ids are cached. If someone deletes or moves a folder in WorkDrive the cached id goes stale,
+  // so on a failed upload forget the cached ids once and look the folders up again.
+  const attempt = async (fresh) => {
+    if (fresh) await st.delete(`fold:${cfg.folderId}:${kind}`);
+    const kindId = await ensureFolder(st, cfg, cfg.folderId, kind);
+    if (fresh) await st.delete(`fold:${kindId}:${monthName}`);
+    const monthId = await ensureFolder(st, cfg, kindId, monthName);
+    const fd = new FormData();
+    fd.append("filename", encodeURIComponent(name));
+    fd.append("parent_id", monthId);
+    fd.append("override-name-exist", "true");
+    fd.append("content", new Blob([Buffer.from(data, "base64")], { type: "application/pdf" }), name);
+    return zfetch(st, cfg, "/workdrive/api/v1/upload", { method: "POST", body: fd, headers: { Accept: "application/json" } });
+  };
+  let r;
+  try { r = await attempt(false); } catch (e) { r = null; }
+  if (!r || (!r.ok && r.status >= 400 && r.status < 500)) r = await attempt(true);
   if (!r.ok) { const t = await r.text().catch(() => ""); throw new Error(`WorkDrive upload failed (${r.status}) ${t.slice(0, 120)}`); }
   const path = `${kind} › ${monthName} › ${name}`;
   if (sig) await st.setJSON(dk, { sig, path, at: Date.now() });
@@ -201,7 +210,7 @@ export default async (req) => {
     const me = await auth(st, req);
     if (!me) return json({ error: "Please sign in again" }, 401);
 
-    if (route === "me") { const mc = await mailCfg(st); return json({ user: cleanUser(me), zoho: !!(await zohoCfg(st)), mail: mailInfo(mc), version: "1.20" }); }
+    if (route === "me") { const mc = await mailCfg(st); return json({ user: cleanUser(me), zoho: !!(await zohoCfg(st)), mail: mailInfo(mc), version: "1.21" }); }
 
     if (route === "password" && req.method === "POST") {
       const users = await getUsers(st), u = users.find((x) => x.id === me.id);
