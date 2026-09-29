@@ -210,7 +210,7 @@ export default async (req) => {
     const me = await auth(st, req);
     if (!me) return json({ error: "Please sign in again" }, 401);
 
-    if (route === "me") { const mc = await mailCfg(st); return json({ user: cleanUser(me), zoho: !!(await zohoCfg(st)), mail: mailInfo(mc), version: "1.21" }); }
+    if (route === "me") { const mc = await mailCfg(st); return json({ user: cleanUser(me), zoho: !!(await zohoCfg(st)), mail: mailInfo(mc), version: "1.22" }); }
 
     if (route === "password" && req.method === "POST") {
       const users = await getUsers(st), u = users.find((x) => x.id === me.id);

@@ -1,4 +1,4 @@
-XTREME v1.21 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+XTREME v1.22 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
 =======================================================================
 
 This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
@@ -6,6 +6,12 @@ GitHub repository (xtreme-sales-toolkit). The COC site can be retired afterwards
 Your existing users, Zoho WorkDrive connection and saved quotations/invoices carry over.
 The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
+
+WHAT'S NEW IN 1.22
+- COC: one certificate can now cover several apartments. On the Property step,
+  tap "+ Add apartment" for each unit (building is copied from the one above).
+  With more than one apartment the PDF lists them in a table; certificates saved
+  before this update still open with their apartment filled in.
 
 WHAT'S NEW IN 1.21 (production check)
 - PDFs: table rows now grow to fit long names, emails, addresses, project names,

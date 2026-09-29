@@ -190,7 +190,7 @@ select{min-height:44px}
 
 .brand{appearance:none;border:0;background:none;padding:0;cursor:pointer;display:block;flex-shrink:0}.brand img{display:block}
 
-/* ===================== Xtreme 1.21 — high-tech black & gold ===================== */
+/* ===================== Xtreme 1.22 — high-tech black & gold ===================== */
 :root,:root[data-theme],:root:not([data-theme="light"]){
   --bg:#000;--surface:rgba(20,18,14,.78);--surface2:#0d0c0a;--line:rgba(212,175,90,.16);--line2:#2b261d;
   --text:#F6F0E3;--muted:#A69D8A;--gold:#E2C170;--goldfill:#D4AF5A;--gold-hi:#F6DE9E;--gold-lo:#9C7A2E;--onGold:#120F08;--focus:#F6DE9E;
@@ -415,7 +415,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
  <div class="sp-core"><svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="rg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6DE9E"/><stop offset=".6" stop-color="#D4AF5A" stop-opacity=".5"/><stop offset="1" stop-color="#D4AF5A" stop-opacity="0"/></linearGradient></defs><circle cx="50" cy="50" r="47" fill="none" stroke="url(#rg1)" stroke-width="2" stroke-linecap="round" stroke-dasharray="190 106"/></svg><svg class="ring2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" fill="none" stroke="#D4AF5A" stroke-width=".8" stroke-dasharray="1.5 4"/></svg><img src="icon-512.png" alt="" width="104" height="104"></div>
  <div class="sp-word">XTREME</div><div class="sp-sub">Facilities Management</div>
  <div class="sp-bar"><i id="sp-bar"></i></div><div class="sp-msg" id="sp-msg">Starting</div></div>
- <div class="sp-ver">Version 1.21</div></div>
+ <div class="sp-ver">Version 1.22</div></div>
 <div id="gate" class="gate">
 <div class="g-bg" aria-hidden="true"><div class="g-grid"></div><div class="g-glow"></div><div class="g-scan"></div></div>
 <div class="g-wrap">
@@ -445,7 +445,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
       </form>
     </div>
   </div>
-  <p class="g-foot">Xtreme version 1.21 · Authorised staff only</p>
+  <p class="g-foot">Xtreme version 1.22 · Authorised staff only</p>
 </div>
 </div>
 <div class="sheet" id="sheet" hidden><div class="sheet-box" id="sheet-box" role="dialog" aria-modal="true" aria-label="Settings"></div></div>
@@ -461,7 +461,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
 <div class="sys"><div class="sysc" id="sys-drive"><i></i><div><b>Zoho WorkDrive</b><small></small></div></div><div class="sysc" id="sys-mail"><i></i><div><b>Customer email</b><small></small></div></div></div>
 <h3 class="h-lbl">What would you like to do?</h3>
 <div class="tiles" id="tiles"></div>
-<p class="h-foot">Xtreme Facilities Management · version 1.21</p>
+<p class="h-foot">Xtreme Facilities Management · version 1.22</p>
 </section>
 <section id="p-quote" class="page wiz" data-title="Quotation" data-label="Quote" hidden>
 <div class="step" data-title="Services">
@@ -717,11 +717,9 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
 <div class="step" data-title="Property">
 <div class="panel">
   <h2 class="ph">Apartment details</h2>
-  <div class="field row2"><div><label class="lbl" for="ka-bld">Building / tower</label><input type="text" id="ka-bld"></div><div><label class="lbl" for="ka-apt">Apartment no.</label><input type="text" id="ka-apt"></div></div>
-  <div class="field row2"><div><label class="lbl" for="ka-floor">Floor</label><input type="text" id="ka-floor"></div><div><label class="lbl" for="ka-area">Area (sq ft)</label><input type="text" id="ka-area" inputmode="decimal"></div></div>
-  <div class="field row2"><div><label class="lbl" for="ka-bed">Bedrooms</label><input type="text" id="ka-bed" inputmode="numeric"></div><div><label class="lbl" for="ka-bath">Bathrooms</label><input type="text" id="ka-bath" inputmode="numeric"></div></div>
-  <div class="field"><span class="lbl">Unit type</span><div class="chips" id="ka-unit"></div></div>
-  <div class="field"><span class="lbl">Furnishing</span><div class="chips" id="ka-furn"></div></div>
+  <div id="ka-items"></div>
+  <button class="btn" type="button" id="ka-add" style="width:100%">+ Add apartment</button>
+  <p class="note">Add every apartment covered by this certificate. A new apartment copies the building from the one above.</p>
 </div>
 <div class="panel">
   <h2 class="ph">Type of cleaning</h2>
@@ -1478,9 +1476,26 @@ const TYPES=["Regular cleaning","Deep cleaning","Move-in / move-out","Post-const
 const STATUS=["Completed","Partially completed","Pending"];
 const DEF_CERT="This is to certify that the works listed above have been completed by Xtreme Facilities Management at the stated premises, in accordance with the agreed scope, and handed over in a clean and satisfactory condition.";
 let types=new Set(["Deep cleaning"]),works=[{d:"",q:"",s:"Completed"}],photos=[];
+const newApt=(bld="")=>({bld,apt:"",floor:"",area:"",bed:"",bath:"",unit:"",furn:""});
+let apts=[newApt()];
 function multiChips(el,items,set,onChange){el.innerHTML="";items.forEach(it=>{const l=document.createElement("label");l.className="chip";l.innerHTML=`<input type="checkbox" value="${esc(it)}"${set.has(it)?" checked":""}><span>${esc(it)}</span>`;l.querySelector("input").addEventListener("change",e=>{e.target.checked?set.add(it):set.delete(it);onChange&&onChange()});el.appendChild(l)})}
 function renderTypes(){multiChips($("kc-types"),TYPES,types,()=>{$("kc-otherw").hidden=!types.has("Others")});$("kc-otherw").hidden=!types.has("Others")}
-function renderRadios(unit,furn,status){chips($("ka-unit"),"aunit",UNITS,unit,()=>{});chips($("ka-furn"),"afurn",FURN,furn,()=>{});chips($("kc-status"),"cstatus",STATUS,status||"Completed",()=>{})}
+function renderRadios(status){chips($("kc-status"),"cstatus",STATUS,status||"Completed",()=>{})}
+/* apartments: one certificate can cover several units */
+const APT_F=[["bld","Building / tower",""],["apt","Apartment no.",""],["floor","Floor",""],["area","Area (sq ft)","decimal"],["bed","Bedrooms","numeric"],["bath","Bathrooms","numeric"]];
+function renderApts(){const box=$("ka-items");box.innerHTML="";apts.forEach((a,i)=>{const d=document.createElement("div");d.className="item";
+  const inp=([k,l,m])=>`<div><label class="lbl">${l}</label><input type="text" data-ak="${k}" data-i="${i}"${m?` inputmode="${m}"`:""} value="${esc(a[k])}"></div>`;
+  d.innerHTML=`<div class="item-h"><b>Apartment ${i+1}</b>${apts.length>1?`<button type="button" class="linkbtn" data-arm="${i}">Remove</button>`:""}</div>
+  <div class="row2">${inp(APT_F[0])}${inp(APT_F[1])}</div><div class="row2">${inp(APT_F[2])}${inp(APT_F[3])}</div><div class="row2">${inp(APT_F[4])}${inp(APT_F[5])}</div>
+  <div class="field" style="margin-top:4px"><span class="lbl">Unit type</span><div class="chips" data-ac="unit"></div></div>
+  <div class="field"><span class="lbl">Furnishing</span><div class="chips" data-ac="furn"></div></div>`;
+  chips(d.querySelector('[data-ac="unit"]'),"aunit"+i,UNITS,a.unit,e=>{a.unit=e.target.value});
+  chips(d.querySelector('[data-ac="furn"]'),"afurn"+i,FURN,a.furn,e=>{a.furn=e.target.value});
+  box.appendChild(d)})}
+$("ka-items").addEventListener("input",e=>{const k=e.target.dataset.ak;if(k)apts[+e.target.dataset.i][k]=e.target.value});
+$("ka-items").addEventListener("click",e=>{const b=e.target.closest("[data-arm]");if(!b)return;apts.splice(+b.dataset.arm,1);if(!apts.length)apts.push(newApt());renderApts()});
+$("ka-add").onclick=()=>{apts.push(newApt(apts.length?apts[apts.length-1].bld:""));renderApts();const l=$("ka-items").lastElementChild;l&&l.querySelector('[data-ak="apt"]').focus()};
+const aptFilled=a=>APT_F.some(([k])=>String(a[k]||"").trim())||a.unit||a.furn;
 function renderWorks(){const box=$("kw-items");box.innerHTML="";works.forEach((w,i)=>{const d=document.createElement("div");d.className="item";
   d.innerHTML=`<div class="item-h"><b>Line ${i+1}</b><button type="button" class="linkbtn" data-wrm="${i}">Remove</button></div>
   <input type="text" data-wk="d" data-i="${i}" placeholder="e.g. Deep cleaning of all rooms, kitchen and 2 bathrooms" value="${esc(w.d)}">
@@ -1512,12 +1527,15 @@ $("kp-in").addEventListener("change",async e=>{for(const f of e.target.files){if
 $("kp-grid").addEventListener("click",e=>{const b=e.target.closest("[data-prm]");if(b){photos.splice(+b.dataset.prm,1);renderPhotos()}});
 
 /* read / fill form */
-const F=["kc-no","kc-date","kc-time","kc-job","kc-qt","kc-lpo","kc-client","kc-co","kc-tel","kc-email","kc-loc","ka-bld","ka-apt","ka-floor","ka-area","ka-bed","ka-bath","kc-other","kc-cert","kc-rem","kn-client","kn-cleaner","kn-super"];
+const F=["kc-no","kc-date","kc-time","kc-job","kc-qt","kc-lpo","kc-client","kc-co","kc-tel","kc-email","kc-loc","kc-other","kc-cert","kc-rem","kn-client","kn-cleaner","kn-super"];
 const g=id=>$(id).value.trim();
-function snapshot(){const o={};F.forEach(id=>o[id]=$(id).value);o.unit=val("aunit");o.furn=val("afurn");o.status=val("cstatus");o.types=[...types];o.works=works.map(w=>({...w}));
+function snapshot(){const o={};F.forEach(id=>o[id]=$(id).value);o.apts=apts.map(a=>({...a}));o.status=val("cstatus");o.types=[...types];o.works=works.map(w=>({...w}));
   o.sig={client:pads.client.data(),cleaner:pads.cleaner.data(),super:pads.super.data()};
   return {...o,ref:g("kc-no"),date:g("kc-date"),client:g("kc-co")||g("kc-client"),total:0,job:g("kc-job")}}
-function fill(o){F.forEach(id=>{$(id).value=o[id]||""});if(!o["kc-cert"])$("kc-cert").value=DEF_CERT;types=new Set(o.types||[]);renderTypes();renderRadios(o.unit,o.furn,o.status);works=(o.works&&o.works.length?o.works:[{d:"",q:"",s:"Completed"}]).map(w=>({...w}));renderWorks();
+function fill(o){F.forEach(id=>{$(id).value=o[id]||""});if(!o["kc-cert"])$("kc-cert").value=DEF_CERT;types=new Set(o.types||[]);renderTypes();renderRadios(o.status);
+  /* certificates saved before multi-apartment support kept a single apartment in ka-* fields */
+  const old={bld:o["ka-bld"],apt:o["ka-apt"],floor:o["ka-floor"],area:o["ka-area"],bed:o["ka-bed"],bath:o["ka-bath"],unit:o.unit,furn:o.furn};
+  apts=(o.apts&&o.apts.length?o.apts:[old]).map(a=>({...newApt(),...Object.fromEntries(Object.entries(a).filter(([,v])=>v!=null))}));renderApts();works=(o.works&&o.works.length?o.works:[{d:"",q:"",s:"Completed"}]).map(w=>({...w}));renderWorks();
   photos=[];renderPhotos();const sg=o.sig||{};Object.keys(pads).forEach(k=>pads[k].load(sg[k]));cPanel&&cPanel.update()}
 function blank(){fill({"kc-no":"XFM/COC/2026-","kc-date":todayISO(),"kc-cert":DEF_CERT,types:["Deep cleaning"],status:"Completed"})}
 $("kc-new").onclick=()=>{if(confirm("Clear the form and start a new certificate?")){blank();window.scrollTo({top:0});toast("New certificate")}};
@@ -1534,8 +1552,19 @@ function buildCocPdf(){
   if(g("kc-qt")||g("kc-lpo"))k.pair("Quotation Ref.",g("kc-qt"),"LPO Ref.",g("kc-lpo"));
   sec("CLIENT INFORMATION");
   row("Client / Company",[g("kc-co"),g("kc-client")].filter(Boolean).join(" – "));row("Contact",[g("kc-tel"),g("kc-email")].filter(Boolean).join("   |   "));row("Location",g("kc-loc"));
-  sec("APARTMENT DETAILS");
-  k.pair("Building / Tower",g("ka-bld"),"Apartment No.",g("ka-apt"));k.pair("Floor",g("ka-floor"),"Area (sq ft)",g("ka-area"));k.pair("Bedrooms",g("ka-bed"),"Bathrooms",g("ka-bath"));k.pair("Unit Type",val("aunit")||"","Furnishing",val("afurn")||"");
+  {const ap=apts.filter(aptFilled).map(a=>{const t={};APT_F.forEach(([f])=>t[f]=String(a[f]||"").trim());t.unit=a.unit||"";t.furn=a.furn||"";return t});
+   if(ap.length<=1){const a=ap[0]||newApt();sec("APARTMENT DETAILS");
+     k.pair("Building / Tower",a.bld,"Apartment No.",a.apt);k.pair("Floor",a.floor,"Area (sq ft)",a.area);k.pair("Bedrooms",a.bed,"Bathrooms",a.bath);k.pair("Unit Type",a.unit,"Furnishing",a.furn)}
+   else{sec(`APARTMENT DETAILS (${ap.length} UNITS)`);
+     const cols=[["No.",9],["Building / Tower",43],["Apt No.",20],["Floor",14],["Unit Type",24],["Bed / Bath",19],["Area (sq ft)",21],["Furnishing",W-150]];
+     const X=[L];cols.forEach(([,w])=>X.push(X[X.length-1]+w));
+     const head=()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,6.5,"F");cols.forEach(([t],i)=>{k.box(X[i],k.y,X[i+1]-X[i],6.5);k.fit(t,(X[i]+X[i+1])/2,k.y+4.4,X[i+1]-X[i]-2,{s:8,a:"center"})});k.y+=6.5};
+     k.ensure(13);head();
+     ap.forEach((a,i)=>{const bl=k.split(a.bld,cols[1][1]-3,8.5),h=Math.max(6.5,bl.length*3.8+2.7);if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
+       const v=[String(i+1),null,a.apt,a.floor,a.unit,[a.bed,a.bath].some(Boolean)?`${a.bed||"-"} / ${a.bath||"-"}`:"",a.area,a.furn];
+       cols.forEach((c,j)=>k.box(X[j],k.y,X[j+1]-X[j],h));
+       doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(20,20,20);doc.text(bl,X[1]+1.5,k.y+4.4);
+       v.forEach((t,j)=>{if(!t)return;let sz=8.5;doc.setFontSize(sz);while(sz>6&&doc.getTextWidth(t)>X[j+1]-X[j]-2){sz-=0.25;doc.setFontSize(sz)}k.txt(t,(X[j]+X[j+1])/2,k.y+4.4,{a:"center",s:sz,c:j?undefined:GR})});k.y+=h})}}
   sec("TYPE OF CLEANING");
   {const cols=3,cw=W/cols,rows=Math.ceil(TYPES.length/cols);k.ensure(rows*6+4);k.box(L,k.y,W,rows*6+3);
    TYPES.forEach((t,i)=>{const x=L+3+(i%cols)*cw,y=k.y+3+Math.floor(i/cols)*6;doc.setDrawColor(60,60,60);doc.setLineWidth(0.3);doc.rect(x,y,3.4,3.4);
@@ -1589,7 +1618,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.21";
+const VERSION="1.22";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};
