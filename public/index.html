@@ -190,7 +190,7 @@ select{min-height:44px}
 
 .brand{appearance:none;border:0;background:none;padding:0;cursor:pointer;display:block;flex-shrink:0}.brand img{display:block}
 
-/* ===================== Xtreme 1.22 — high-tech black & gold ===================== */
+/* ===================== Xtreme 1.23 — high-tech black & gold ===================== */
 :root,:root[data-theme],:root:not([data-theme="light"]){
   --bg:#000;--surface:rgba(20,18,14,.78);--surface2:#0d0c0a;--line:rgba(212,175,90,.16);--line2:#2b261d;
   --text:#F6F0E3;--muted:#A69D8A;--gold:#E2C170;--goldfill:#D4AF5A;--gold-hi:#F6DE9E;--gold-lo:#9C7A2E;--onGold:#120F08;--focus:#F6DE9E;
@@ -415,7 +415,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
  <div class="sp-core"><svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="rg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6DE9E"/><stop offset=".6" stop-color="#D4AF5A" stop-opacity=".5"/><stop offset="1" stop-color="#D4AF5A" stop-opacity="0"/></linearGradient></defs><circle cx="50" cy="50" r="47" fill="none" stroke="url(#rg1)" stroke-width="2" stroke-linecap="round" stroke-dasharray="190 106"/></svg><svg class="ring2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" fill="none" stroke="#D4AF5A" stroke-width=".8" stroke-dasharray="1.5 4"/></svg><img src="icon-512.png" alt="" width="104" height="104"></div>
  <div class="sp-word">XTREME</div><div class="sp-sub">Facilities Management</div>
  <div class="sp-bar"><i id="sp-bar"></i></div><div class="sp-msg" id="sp-msg">Starting</div></div>
- <div class="sp-ver">Version 1.22</div></div>
+ <div class="sp-ver">Version 1.23</div></div>
 <div id="gate" class="gate">
 <div class="g-bg" aria-hidden="true"><div class="g-grid"></div><div class="g-glow"></div><div class="g-scan"></div></div>
 <div class="g-wrap">
@@ -445,7 +445,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
       </form>
     </div>
   </div>
-  <p class="g-foot">Xtreme version 1.22 · Authorised staff only</p>
+  <p class="g-foot">Xtreme version 1.23 · Authorised staff only</p>
 </div>
 </div>
 <div class="sheet" id="sheet" hidden><div class="sheet-box" id="sheet-box" role="dialog" aria-modal="true" aria-label="Settings"></div></div>
@@ -461,7 +461,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
 <div class="sys"><div class="sysc" id="sys-drive"><i></i><div><b>Zoho WorkDrive</b><small></small></div></div><div class="sysc" id="sys-mail"><i></i><div><b>Customer email</b><small></small></div></div></div>
 <h3 class="h-lbl">What would you like to do?</h3>
 <div class="tiles" id="tiles"></div>
-<p class="h-foot">Xtreme Facilities Management · version 1.22</p>
+<p class="h-foot">Xtreme Facilities Management · version 1.23</p>
 </section>
 <section id="p-quote" class="page wiz" data-title="Quotation" data-label="Quote" hidden>
 <div class="step" data-title="Services">
@@ -576,6 +576,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
   <h2 class="ph">Items</h2>
   <div class="field"><label class="lbl" for="i-cov">Coverage</label><input type="text" id="i-cov" placeholder="e.g. September 2026 (optional)"></div>
   <div id="i-items"></div>
+  <div class="field" style="margin-top:4px"><label class="switch"><input type="checkbox" id="i-vat" checked> Add 5% VAT</label></div>
   <div class="actions" style="margin-top:4px">
     <button class="btn" type="button" id="i-add">+ Add item</button>
     <button class="btn" type="button" id="i-addq">+ Add from price list</button>
@@ -590,7 +591,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
   </div>
 </div>
 <div class="total" aria-live="polite">
-  <div class="t-lbl">Total invoice amount with VAT</div>
+  <div class="t-lbl" id="i-tl">Total invoice amount with VAT</div>
   <div class="t-num" id="i-total"><small>AED</small>0</div>
   <div class="lines" id="i-lines"></div>
   <div class="save" id="i-words"></div>
@@ -1183,13 +1184,15 @@ function pkSvcs(){const row=PRICES[$("pk-prop").value][$("pk-size").value];pkIdx
 fillSel($("pk-prop"),Object.keys(PRICES));pkSizes();$("pk-prop").onchange=pkSizes;$("pk-size").onchange=pkSvcs;
 $("i-addq").onclick=()=>{$("i-pick").hidden=!$("i-pick").hidden};
 $("pk-go").onclick=()=>{addPriced($("pk-prop").value,$("pk-size").value,pkIdx[$("pk-svc").selectedIndex]);$("i-pick").hidden=true;toast("Item added")};
-function inv(){const net=r2(items.reduce((s,it)=>s+lineTotal(it),0)),vat=r2(net*0.05);return {net,vat,total:r2(net+vat)}}
+function inv(){const net=r2(items.reduce((s,it)=>s+lineTotal(it),0)),vatOn=$("i-vat").checked,vat=vatOn?r2(net*0.05):0;return {net,vatOn,vat,total:r2(net+vat)}}
 let iPanel=null;
-function invCalc(){const {net,vat,total}=inv();$("i-total").innerHTML=`<small>AED</small>${money(total)}`;$("i-lines").innerHTML=`<div class="line"><span>Net amount</span><b>${money(net)}</b></div><div class="line"><span>5% VAT</span><b>${money(vat)}</b></div>`;$("i-words").textContent=amountWords(total);iPanel&&iPanel.update()}
-["i-no","i-date","i-terms","i-due","i-proj","i-po","i-client","i-addr","i-tel","i-trn","i-email","i-cov"].forEach(id=>$(id).addEventListener("input",invCalc));
+function invCalc(){const {net,vatOn,vat,total}=inv();$("i-tl").textContent=vatOn?"Total invoice amount with VAT":"Total invoice amount";$("i-total").innerHTML=`<small>AED</small>${money(total)}`;$("i-lines").innerHTML=`<div class="line"><span>Net amount</span><b>${money(net)}</b></div>`+(vatOn?`<div class="line"><span>5% VAT</span><b>${money(vat)}</b></div>`:"");$("i-words").textContent=amountWords(total);iPanel&&iPanel.update()}
+["i-no","i-date","i-terms","i-due","i-proj","i-po","i-client","i-addr","i-tel","i-trn","i-email","i-cov"].forEach(id=>$(id).addEventListener("input",invCalc));$("i-vat").addEventListener("change",invCalc);
+/* a VAT invoice is a "Tax Invoice"; without VAT it is a plain invoice */
+const invName=()=>$("i-vat").checked?"Tax Invoice":"Invoice";
 function buildInvoicePdf(){
-  const from=$("ii-from").value,k=pdfKit("TAX INVOICE",from),{doc,L,R,W}=k;const g=id=>$(id).value.trim();
-  k.pair("Invoice Date",dfmt(g("i-date")),"Tax Invoice No.",g("i-no"));k.pair("Terms",g("i-terms"),"Project",g("i-proj"));k.pair("Due Date",dfmt(g("i-due")),"Client's P.O. No.",g("i-po"));
+  const from=$("ii-from").value,k=pdfKit(invName().toUpperCase(),from),{doc,L,R,W}=k;const g=id=>$(id).value.trim();
+  k.pair("Invoice Date",dfmt(g("i-date")),`${invName()} No.`,g("i-no"));k.pair("Terms",g("i-terms"),"Project",g("i-proj"));k.pair("Due Date",dfmt(g("i-due")),"Client's P.O. No.",g("i-po"));
   k.y+=4;k.band(L,k.y,W,6,"BILL TO");k.y+=6;
   [["Client / Company",g("i-client")],["Address",g("i-addr")],["Tel / Fax",g("i-tel")],["Email",g("i-email")],["Client TRN",g("i-trn")]].forEach(([l,v])=>k.row(l,v));
   k.y+=4;const C=[L,L+10,L+92,L+112,L+132,L+158,R];
@@ -1203,12 +1206,13 @@ function buildInvoicePdf(){
       k.txt(it.u,(C[2]+C[3])/2,k.y+4.4,{a:"center",s:8.5});k.txt(it.f===""?"1":it.f,(C[3]+C[4])/2,k.y+4.4,{a:"center",s:8.5});
       if(it.r!=="")k.txt(money(num(it.r)),C[5]-2,k.y+4.4,{a:"right",s:8.5});k.txt(it.r!==""?money(lineTotal(it)):"",R-2,k.y+4.4,{a:"right",s:8.5,b:1})}
     k.y+=h}
-  const {net,vat,total}=inv();
+  const {net,vatOn,vat,total}=inv();
   const WC=C[2],wl=k.split(amountWords(total),WC-L-4,8.5,1),wb=Math.max(15.5,wl.length*4+5),bh=6.5+wb;
   if(k.y+bh>272){doc.addPage();k.decor();k.y=34}
   k.box(L,k.y,WC-L,6.5,LAB);k.txt("Total Amount in Words",L+2,k.y+4.4,{b:1,s:8.5});k.box(L,k.y+6.5,WC-L,wb);
   doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(20,20,20);k.lines(wl,L+2,k.y+6.5+(wb-(wl.length-1)*4)/2+1.2,4);
-  [["Net Amount",money(net)],["5% VAT",money(vat)],["Total Invoice Amount with VAT",money(total)]].forEach(([l,v],i)=>{const h=i===2?bh-13:6.5,yy=k.y+i*6.5,big=i===2;k.box(WC,yy,C[5]-WC,h,big?null:LAB);k.box(C[5],yy,R-C[5],h,null);k.txt(l,C[5]-2,yy+h/2+1.3,{b:1,s:big?9:8.5,a:"right"});k.fit(v,R-2,yy+h/2+1.3,R-C[5]-4,{s:big?10:8.5,a:"right"})});
+  const tr=vatOn?[["Net Amount",money(net)],["5% VAT",money(vat)],["Total Invoice Amount with VAT",money(total)]]:[["Net Amount",money(net)],["Total Invoice Amount",money(total)]],last=tr.length-1;
+  tr.forEach(([l,v],i)=>{const h=i===last?bh-last*6.5:6.5,yy=k.y+i*6.5,big=i===last;k.box(WC,yy,C[5]-WC,h,big?null:LAB);k.box(C[5],yy,R-C[5],h,null);k.txt(l,C[5]-2,yy+h/2+1.3,{b:1,s:big?9:8.5,a:"right"});k.fit(v,R-2,yy+h/2+1.3,R-C[5]-4,{s:big?10:8.5,a:"right"})});
   k.y+=bh+4;if(k.y+91>276){doc.addPage();k.decor();k.y=34}
   k.band(L,k.y,W,6,"PLEASE MAKE PAYMENT TO");k.y+=6;
   [["Account Name","Xtreme Facilities Management - Sole Proprietorship L.L.C."],["Bank Name","RAK Bank"],["Branch Name","Khalidiya, Abu Dhabi"],["Account Number","0303523550001"],["Account Currency","AED"],["IBAN","AE120400000303523550001"]].forEach(([l,v])=>{k.box(L,k.y,38,5.5,LAB);k.box(L+38,k.y,W-38,5.5);k.txt(l,L+2,k.y+3.9,{b:1,s:8.5});k.txt(v,L+40,k.y+3.9,{s:8.5});k.y+=5.5});
@@ -1221,11 +1225,11 @@ function buildInvoicePdf(){
 }
 $("i-date").value=todayISO();renderItems();
 iPanel=sendPanel("ii",{mount:"i-send",kind:"Invoices",date:()=>$("i-date").value,docType:"invoice",
-  snap:()=>{const g=id=>$(id).value.trim(),t=inv();return {ref:g("i-no"),date:g("i-date"),client:g("i-client"),addr:g("i-addr"),tel:g("i-tel"),email:g("i-email"),trn:g("i-trn"),proj:g("i-proj"),po:g("i-po"),items:items.filter(i=>i.d||i.r).map(i=>({...i})),net:t.net,vat:t.vat,total:t.total}},
+  snap:()=>{const g=id=>$(id).value.trim(),t=inv();return {ref:g("i-no"),date:g("i-date"),client:g("i-client"),addr:g("i-addr"),tel:g("i-tel"),email:g("i-email"),trn:g("i-trn"),proj:g("i-proj"),po:g("i-po"),items:items.filter(i=>i.d||i.r).map(i=>({...i})),net:t.net,vatOn:t.vatOn,vat:t.vat,total:t.total}},
   to:()=>$("i-email").value.trim(),
-  subject:()=>`Tax Invoice ${$("i-no").value.trim()} - Xtreme Facilities Management`,
-  body:()=>{const what=$("i-proj").value.trim()||(items.find(i=>i.d)||{}).d||"our services";return `Dear ${$("i-client").value.trim()||"Sir/Madam"},\n\nPlease find attached Tax Invoice ${$("i-no").value.trim()}${$("i-date").value?` dated ${dfmt($("i-date").value)}`:""} for ${what}, for a total of AED ${money(inv().total)} (including 5% VAT).\n\nPayment details are shown on the invoice. If you have any questions, please reply to this email.`},
-  filename:()=>`Tax Invoice ${$("i-no").value.trim()||"Xtreme"}.pdf`.replace(/[\/\\]/g,"-"),
+  subject:()=>`${invName()} ${$("i-no").value.trim()} - Xtreme Facilities Management`,
+  body:()=>{const what=$("i-proj").value.trim()||(items.find(i=>i.d)||{}).d||"our services";return `Dear ${$("i-client").value.trim()||"Sir/Madam"},\n\nPlease find attached ${invName()} ${$("i-no").value.trim()}${$("i-date").value?` dated ${dfmt($("i-date").value)}`:""} for ${what}, for a total of AED ${money(inv().total)}${inv().vatOn?" (including 5% VAT)":""}.\n\nPayment details are shown on the invoice. If you have any questions, please reply to this email.`},
+  filename:()=>`${invName()} ${$("i-no").value.trim()||"Xtreme"}.pdf`.replace(/[\/\\]/g,"-"),
   check:()=>items.some(it=>it.r!=="")?null:"Add at least one item with a rate",build:buildInvoicePdf});
 invCalc();
 
@@ -1388,8 +1392,9 @@ function invFromQuote(d){
   if(d.discAmt>0)items.push({d:`Discount (${fmt(d.disc)}%)`,u:"",f:"1",r:String(-d.discAmt)});
   if(!items.length)items=[{d:"",u:"",f:"1",r:""}];
   $("i-client").value=d.co||d.name||"";$("i-tel").value=d.phone||"";$("i-email").value=d.email||"";$("i-addr").value=d.loc||"";$("i-proj").value=`As per quotation ${d.ref}`;
+  $("i-vat").checked=d.vatOn!==false;
   renderItems();invCalc();flash(["i-client","i-tel","i-email","i-addr","i-proj","i-items"]);
-  $("iq-msg").innerHTML=`<b>Loaded quotation ${esc(d.ref)}</b> · ${d.items.length} item${d.items.length>1?"s":""}. Add the invoice number, then check and edit anything before sending.${d.vatOn?"":" <b>Note:</b> the quotation had no VAT; the invoice adds 5% VAT."}`;
+  $("iq-msg").innerHTML=`<b>Loaded quotation ${esc(d.ref)}</b> · ${d.items.length} item${d.items.length>1?"s":""}. Add the invoice number, then check and edit anything before sending.${d.vatOn===false?" The quotation had no VAT, so VAT is switched off here too; turn it on under Items if needed.":""}`;
   $("iq-recent").innerHTML="";toast(`Quotation ${d.ref} loaded`);$("i-no").focus()}
 let rqType="invoice";
 function setRq(t){rqType=t;$("rq-q").setAttribute("aria-pressed",t==="quote");$("rq-i").setAttribute("aria-pressed",t==="invoice");$("rq-ref").placeholder=t==="quote"?"Quotation ref, e.g. 145":"Invoice no., e.g. 80";$("rq-msg").textContent="Enter the number. Everything stays editable after it loads.";showRecent(t,$("rq-recent"),$("rq-msg"),rcFrom)}
@@ -1618,7 +1623,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.22";
+const VERSION="1.23";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};

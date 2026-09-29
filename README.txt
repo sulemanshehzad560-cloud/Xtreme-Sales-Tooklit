@@ -1,4 +1,4 @@
-XTREME v1.22 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+XTREME v1.23 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
 =======================================================================
 
 This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
@@ -6,6 +6,12 @@ GitHub repository (xtreme-sales-toolkit). The COC site can be retired afterwards
 Your existing users, Zoho WorkDrive connection and saved quotations/invoices carry over.
 The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
+
+WHAT'S NEW IN 1.23
+- Invoice: new "Add 5% VAT" switch on the Items step (on by default), like the
+  quotation and contract already have. With VAT off the PDF is titled INVOICE
+  (not TAX INVOICE) and shows no VAT line; email subject and file name follow.
+- Loading a quotation into an invoice keeps the quotation's VAT choice.
 
 WHAT'S NEW IN 1.22
 - COC: one certificate can now cover several apartments. On the Property step,
