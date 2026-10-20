@@ -1,4 +1,4 @@
-XTREME v1.23 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+XTREME v1.24 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
 =======================================================================
 
 This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
@@ -6,6 +6,25 @@ GitHub repository (xtreme-sales-toolkit). The COC site can be retired afterwards
 Your existing users, Zoho WorkDrive connection and saved quotations/invoices carry over.
 The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
+
+WHAT'S NEW IN 1.24
+- Automatic document numbers. Quotation ref, invoice no., contract no., receipt no.
+  and COC no. are filled in for you and can't be typed over. All phones share one
+  sequence on the server, so an Android phone and an iPhone never get the same number:
+    Quotations  XFM/QT/2026-146     Tax invoices  XFM-INV-0081
+    Contracts   XFM/CT/2026-1       Receipts      XFM-RCT-0001
+    COC         XFM/COC/2026-1
+  Numbers with a year start again at 1 every January. The first time, the app carries
+  on from the highest number already saved. If another phone uses a number while you
+  are filling a form, the preview takes the next free one and tells you.
+  Admin: Settings > Document numbers sets the next number (e.g. to continue an old book).
+- Settings follow you to every device. Zoho WorkDrive, Zoho Mail, users and numbering
+  were already stored on the server; the app now re-reads them whenever it is opened or
+  brought back to the front (and every 2 minutes), so a change made by the admin on an
+  Android phone shows on iPhones without signing out. Your name and position for the
+  PDF signature are now saved to your account too.
+- If the phone has no connection for a moment when the app opens, it retries instead of
+  dropping into on-device mode.
 
 WHAT'S NEW IN 1.23
 - Invoice: new "Add 5% VAT" switch on the Items step (on by default), like the
@@ -45,6 +64,18 @@ WHAT'S NEW IN 1.20
 - Users and access (admin only): up to 10 accounts, choose which sections each
   user can open, block/unblock, delete. Normal users never see Zoho or email
   settings and can't disconnect anything. The server enforces this too.
+
+PHONE APPS (ANDROID APK AND IPHONE)
+ The folder "mobile" holds the Android and iPhone app. Both open this Netlify site, so
+ every phone uses the same accounts, numbers, Zoho and email settings, and website
+ updates show in the apps straight away without a new build.
+ Build: GitHub > Actions > "Mobile apps" > Run workflow (about 10 minutes).
+ Download: on the repository page open Releases > "test-build".
+   Android: open the .apk on the phone and allow installing.
+   iPhone: needs an Apple Developer account. Add the 4 secrets listed at the top of
+   .github/workflows/mobile.yml and every build goes to TestFlight automatically.
+ If the site address is not https://xtremesalestoolkit.netlify.app, set it once under
+ Settings > Secrets and variables > Actions > Variables > APP_URL.
 
 UPDATE FROM YOUR PHONE (GitHub website, about 5 minutes)
  Tip: in Chrome, tap the 3 dots > tick "Desktop site" so GitHub shows every button.

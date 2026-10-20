@@ -146,6 +146,54 @@ async function uploadPdf(st, cfg, { kind, date, filename, data, sig, dedupe }) {
   return { path };
 }
 
+/* ---------------- Automatic document numbers ---------------- */
+// One shared counter per document type on the server, so every phone (Android or iPhone) gets the
+// next number in the same sequence. Yearly types restart at 1 each year (UAE time).
+const REFS = {
+  quote: { kind: "Quotations", pre: "XFM/QT/", yearly: true, pad: 0 },
+  invoice: { kind: "Invoices", pre: "XFM-INV-", yearly: false, pad: 4 },
+  contract: { kind: "Contracts", pre: "XFM/CT/", yearly: true, pad: 0 },
+  receipt: { kind: "Receipts", pre: "XFM-RCT-", yearly: false, pad: 4 },
+  coc: { kind: "Completion Certificates", pre: "XFM/COC/", yearly: true, pad: 0 },
+};
+const KIND_REF = Object.fromEntries(Object.entries(REFS).map(([t, r]) => [r.kind, t]));
+const uaeYear = () => new Date(Date.now() + 4 * 36e5).getUTCFullYear();
+const seqKey = (t, y) => (REFS[t].yearly ? `seq:${t}:${y}` : `seq:${t}`);
+const fmtRef = (t, y, n) => { const r = REFS[t]; return r.pre + (r.yearly ? y + "-" : "") + String(n).padStart(r.pad, "0"); };
+// Number inside a ref or file name of this type, e.g. "Quotation XFM-QT-2026-145.pdf" -> {y:2026, n:145}
+function parseRef(t, s) {
+  const str = String(s || "").replace(/\.pdf$/i, "").trim();
+  if (REFS[t].yearly) { const m = /(\d{4})\s*-\s*(\d{1,6})\s*$/.exec(str); return m ? { y: +m[1], n: +m[2] } : null; }
+  const m = /(\d{1,7})\s*$/.exec(str); return m && !/\d{4}\s*-\s*\d+\s*$/.test(str) ? { y: null, n: +m[1] } : null;
+}
+// The first time a counter is used, carry on from the highest number already issued (saved documents and WorkDrive uploads).
+async function seedSeq(st, t, y) {
+  let max = 0;
+  const take = (s) => { const p = parseRef(t, s); if (p && (!REFS[t].yearly || p.y === y) && p.n > max) max = p.n; };
+  for (const x of (await st.get(`docs:${t}`, { type: "json" })) || []) take(x.ref);
+  try {
+    const { blobs } = await st.list({ prefix: `up:${REFS[t].kind}:` });
+    for (const b of blobs || []) { const v = await st.get(b.key, { type: "json" }); if (v && v.path) take(v.path.split(" › ").pop()); }
+  } catch {}
+  return max;
+}
+async function lastNo(st, t, y) {
+  const c = await st.get(seqKey(t, y), { type: "json" });
+  if (c && typeof c.last === "number") return c.last;
+  const last = await seedSeq(st, t, y);
+  await st.setJSON(seqKey(t, y), { last });
+  return last;
+}
+async function nextRef(st, t) { const y = uaeYear(), n = (await lastNo(st, t, y)) + 1; return { type: t, ref: fmtRef(t, y, n), n, year: REFS[t].yearly ? y : null, prefix: REFS[t].pre + (REFS[t].yearly ? y + "-" : "") }; }
+// Called whenever a document is issued: moves the counter past its number.
+async function commitRef(st, t, s) {
+  if (!REFS[t]) return;
+  const p = parseRef(t, s); if (!p) return;
+  const y = REFS[t].yearly ? p.y : uaeYear();
+  if (REFS[t].yearly && (y < 2000 || y > 2100)) return;
+  if (p.n > (await lastNo(st, t, y))) await st.setJSON(seqKey(t, y), { last: p.n });
+}
+
 /* ---------------- Customer email (Zoho Mail SMTP) ---------------- */
 const mailInfo = (m) => (m && m.enabled !== false ? { on: true, froms: m.froms && m.froms.length ? m.froms : [m.user], defaults: m.defaults || {} } : { on: false, froms: [], defaults: {} });
 async function mailCfg(st) { return (await st.get("mail", { type: "json" })) || null; }
@@ -210,7 +258,32 @@ export default async (req) => {
     const me = await auth(st, req);
     if (!me) return json({ error: "Please sign in again" }, 401);
 
-    if (route === "me") { const mc = await mailCfg(st); return json({ user: cleanUser(me), zoho: !!(await zohoCfg(st)), mail: mailInfo(mc), version: "1.23" }); }
+    if (route === "me") { const mc = await mailCfg(st); return json({ user: cleanUser(me), zoho: !!(await zohoCfg(st)), mail: mailInfo(mc), prefs: (await st.get(`prefs:${me.id}`, { type: "json" })) || {}, version: "1.24" }); }
+
+    // Personal settings (name and position for signatures) follow the user to every device.
+    if (route === "prefs" && req.method === "POST") {
+      const p = { sender: String(body.sender || "").slice(0, 80), pos: String(body.pos || "").slice(0, 80) };
+      await st.setJSON(`prefs:${me.id}`, p);
+      return json({ ok: true, prefs: p });
+    }
+
+    if (route === "ref/next") {
+      const t = url.searchParams.get("type");
+      if (!REFS[t]) return json({ error: "Unknown type" }, 400);
+      if (!can(me, t)) return json({ error: "You don't have access to this section" }, 403);
+      return json(await nextRef(st, t));
+    }
+
+    if (route === "refs") {
+      if (me.role !== "admin") return json({ error: "Only an admin can change numbering" }, 403);
+      if (req.method === "POST") {
+        const t = body.type, n = Math.floor(+body.next);
+        if (!REFS[t]) return json({ error: "Unknown type" }, 400);
+        if (!(n >= 1 && n <= 9_999_999)) return json({ error: "Enter a number from 1" }, 400);
+        await st.setJSON(seqKey(t, uaeYear()), { last: n - 1 });
+      }
+      return json({ refs: await Promise.all(Object.keys(REFS).map((t) => nextRef(st, t))) });
+    }
 
     if (route === "password" && req.method === "POST") {
       const users = await getUsers(st), u = users.find((x) => x.id === me.id);
@@ -315,6 +388,7 @@ export default async (req) => {
       const ik = `docs:${t}`, idx = ((await st.get(ik, { type: "json" })) || []).filter((x) => normRef(x.ref) !== n);
       idx.unshift({ ref, date: body.data.date || "", client: body.data.client || "", total: body.data.total || 0, savedAt: Date.now() });
       await st.setJSON(ik, idx.slice(0, 500));
+      await commitRef(st, t, ref);
       return json({ ok: true });
     }
 
@@ -336,7 +410,9 @@ export default async (req) => {
       if (!cfg) return json({ error: "Zoho WorkDrive isn't connected" }, 400);
       if (!KIND_MOD[body.kind] || !can(me, KIND_MOD[body.kind])) return json({ error: "You don't have access to this section" }, 403);
       if (!body.data || body.data.length > 5_500_000) return json({ error: "PDF missing or too large" }, 400);
-      return json({ ok: true, ...(await uploadPdf(st, cfg, body)) });
+      const up = await uploadPdf(st, cfg, body);
+      await commitRef(st, KIND_REF[body.kind], body.filename).catch(() => {});
+      return json({ ok: true, ...up });
     }
 
     // One call per finished PDF: always uploads to WorkDrive, and emails the customer when an address is given.
@@ -350,6 +426,7 @@ export default async (req) => {
       ]);
       const out = (r) => (r.status === "fulfilled" ? r.value : { error: (r.reason && r.reason.message) || "Failed" });
       const drive = out(d), mail = out(m);
+      await commitRef(st, KIND_REF[body.kind], body.filename).catch(() => {});
       if (me.role !== "admin" && drive.path) drive.path = drive.path.split(" › ")[0];
       return json({ drive, mail });
     }

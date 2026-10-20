@@ -1,0 +1,190 @@
+# Builds the Xtreme phone apps (Android APK and iPhone) from mobile/.
+# The apps open the live Netlify site, so every phone shares the same server, users,
+# document numbers, Zoho and email settings. Website updates reach the apps without a rebuild.
+#
+# Run it: GitHub > Actions > "Mobile apps" > Run workflow (or push a change under mobile/).
+# Downloads: the "test-build" release (Releases on the repository page) and each run's artifacts.
+#
+# Optional repository settings (Settings > Secrets and variables > Actions):
+#   Variable APP_URL                  the Netlify site, if not https://xtremesalestoolkit.netlify.app
+#   Android release signing (otherwise a debug-signed test APK is built):
+#     Secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#   iPhone TestFlight upload (otherwise an unsigned .ipa is built):
+#     Secrets APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_P8 (the text of the AuthKey .p8 file,
+#     pasted as is; ASC_KEY_P8_BASE64 also works). App Store Connect API key with Admin access.
+name: Mobile apps
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: "Netlify site address (leave empty for the default)"
+        required: false
+        default: ""
+  push:
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_URL: ${{ inputs.app_url || vars.APP_URL || 'https://xtremesalestoolkit.netlify.app' }}
+  APP_VERSION: "1.24"
+  BUILD_NUMBER: ${{ github.run_number }}
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Create the Android project
+        run: |
+          npm ci
+          npm run config
+          npx cap add android
+          npx capacitor-assets generate --android --iconBackgroundColor '#000000' --iconBackgroundColorDark '#000000' --splashBackgroundColor '#000000' --splashBackgroundColorDark '#000000'
+          sed -i "s/versionCode 1$/versionCode ${BUILD_NUMBER}/; s/versionName \"1.0\"/versionName \"${APP_VERSION}.${BUILD_NUMBER}\"/" android/app/build.gradle
+          npx cap sync android
+      - name: Build APK
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            ./gradlew --no-daemon assembleRelease \
+              -Pandroid.injected.signing.store.file="$RUNNER_TEMP/release.jks" \
+              -Pandroid.injected.signing.store.password="$KS_PASS" \
+              -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+              -Pandroid.injected.signing.key.password="$KEY_PASS"
+            cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/Xtreme-${APP_VERSION}.${BUILD_NUMBER}.apk"
+          else
+            ./gradlew --no-daemon assembleDebug
+            cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/Xtreme-${APP_VERSION}.${BUILD_NUMBER}-test.apk"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: ${{ runner.temp }}/*.apk
+          if-no-files-found: error
+
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Use the newest Xcode
+        run: |
+          X=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$X"
+          xcodebuild -version
+      - name: Create the iOS project
+        run: |
+          npm ci
+          npm run config
+          npx cap add ios
+          npx capacitor-assets generate --ios --iconBackgroundColor '#000000' --iconBackgroundColorDark '#000000' --splashBackgroundColor '#000000' --splashBackgroundColorDark '#000000'
+          P=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'Take job photos for completion certificates.'" $P
+          /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryUsageDescription string 'Attach job photos to completion certificates.'" $P
+          /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryAddUsageDescription string 'Save documents and photos.'" $P
+          /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" $P
+          sed -i '' "s/MARKETING_VERSION = 1.0;/MARKETING_VERSION = ${APP_VERSION};/; s/CURRENT_PROJECT_VERSION = 1;/CURRENT_PROJECT_VERSION = ${BUILD_NUMBER};/" ios/App/App.xcodeproj/project.pbxproj
+          npx cap sync ios
+      - name: Build unsigned iPhone app
+        working-directory: mobile/ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/unsigned.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive | tail -40
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          cp -R "$RUNNER_TEMP/unsigned.xcarchive/Products/Applications/App.app" "$RUNNER_TEMP/ipa/Payload/"
+          (cd "$RUNNER_TEMP/ipa" && zip -qry "$RUNNER_TEMP/Xtreme-${APP_VERSION}.${BUILD_NUMBER}-unsigned.ipa" Payload)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned-ipa
+          path: ${{ runner.temp }}/*.ipa
+          if-no-files-found: error
+      - name: Sign and upload to TestFlight
+        if: env.ASC_KEY_ID != '' && env.TEAM_ID != '' && (env.ASC_KEY_P8 != '' || env.ASC_KEY_P8_BASE64 != '')
+        working-directory: mobile/ios/App
+        run: |
+          KEY="$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
+          if [ -n "$ASC_KEY_P8" ]; then printf '%s\n' "$ASC_KEY_P8" > "$KEY"; else echo "$ASC_KEY_P8_BASE64" | base64 -D > "$KEY"; fi
+          grep -q "BEGIN PRIVATE KEY" "$KEY" || { echo "::error::ASC_KEY_P8 must be the whole .p8 file text, including the BEGIN/END PRIVATE KEY lines"; exit 1; }
+          AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$KEY" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
+          # Signing the archive itself would need a development profile (and a registered test device).
+          # TestFlight only needs distribution signing, which the export step applies to the unsigned archive.
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/signed.xcarchive" \
+            DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGNING_ALLOWED=NO archive | tail -20
+          cat > "$RUNNER_TEMP/export.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/signed.xcarchive" -exportOptionsPlist "$RUNNER_TEMP/export.plist" \
+            -exportPath "$RUNNER_TEMP/export" "${AUTH[@]}"
+          echo "Uploaded build ${APP_VERSION} (${BUILD_NUMBER}) to App Store Connect. It appears in TestFlight after Apple's processing (usually 5-30 min)."
+
+  publish:
+    needs: [android, ios]
+    if: always() && (needs.android.result == 'success' || needs.ios.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-build
+          name: "Xtreme test build ${{ env.APP_VERSION }}.${{ env.BUILD_NUMBER }}"
+          prerelease: true
+          make_latest: false
+          body: |
+            Phone apps built from `${{ github.sha }}` (${{ github.ref_name }}), opening ${{ env.APP_URL }}.
+            - **Android**: download the `.apk` on the phone and open it (allow "install unknown apps" when asked).
+            - **iPhone**: the `-unsigned.ipa` needs signing before it installs (TestFlight upload runs automatically once the Apple secrets are added; see .github/workflows/mobile.yml).
+          files: out/*

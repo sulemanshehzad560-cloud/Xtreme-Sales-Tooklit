@@ -225,6 +225,8 @@ body.at-home .wrap{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
 input[type=text],input[type=password],input[type=tel],input[type=date],input[type=number],input[type=email],select,textarea{background:var(--surface2);border:1px solid var(--line2);border-radius:var(--r-sm);color:var(--text);padding:12px 13px;min-height:48px;transition:border-color .18s,box-shadow .18s}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--goldfill);box-shadow:0 0 0 3px rgba(212,175,90,.18),0 0 18px rgba(212,175,90,.12)}
 input::placeholder,textarea::placeholder{color:#6d6556}
+input.autoref{color:var(--goldfill);font-weight:700;letter-spacing:.3px;cursor:default}
+input.autoref:focus{box-shadow:none;border-color:var(--line2)}
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) sepia(1) saturate(3) hue-rotate(5deg)}
 select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23D4AF5A' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
 .chip span{background:var(--surface2);border-color:var(--line2);border-radius:999px;padding:10px 16px;font-size:14.5px}
@@ -837,7 +839,14 @@ function amountWords(t){const d=Math.floor(t+1e-9),f=Math.round((t-d)*100);retur
 
 /* ---------- sharing / email ---------- */
 let dl=null;try{window.claude&&window.claude.use&&window.claude.use("downloads").then(d=>{dl=d}).catch(()=>{})}catch(e){}
+/* inside the Android / iPhone app (Capacitor) the web share sheet and downloads aren't available: save to the app cache and use the native share sheet */
+const nativeApp=()=>{const c=window.Capacitor;return !!(c&&c.isNativePlatform&&c.isNativePlatform()&&c.Plugins&&c.Plugins.Filesystem&&c.Plugins.Share)};
+async function nativeShare(blob,name,title,text){const c=window.Capacitor.Plugins;
+  const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(blob)});
+  const w=await c.Filesystem.writeFile({path:String(name).replace(/[\\/:*?"<>|]/g,"-"),data,directory:"CACHE"});
+  try{await c.Share.share({title,text:text||undefined,files:[w.uri],dialogTitle:title});return "shared"}catch(e){if(/cancel/i.test(String(e&&e.message)))return "cancelled";throw e}}
 async function deliverPdf(blob,name,title,text){
+  if(nativeApp()){try{return await nativeShare(blob,name,title,text)}catch(e){}}
   // 1) native share sheet (Zoho Mail, WhatsApp, Gmail…)
   try{const f=new File([blob],name,{type:"application/pdf"});
     if(navigator.canShare&&navigator.canShare({files:[f]})){const data={files:[f],title};if(text)data.text=text;await navigator.share(data);return "shared"}}
@@ -848,6 +857,9 @@ async function deliverPdf(blob,name,title,text){
   try{const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return "saved"}catch(e){return "failed"}
 }
 let aliases=store.get("aliases",["sales@xtreme-fm.com"]);
+let prefT=null;const savePrefs=()=>{clearTimeout(prefT);prefT=setTimeout(()=>{if(window.XFM&&XFM.savePrefs)XFM.savePrefs({sender:store.get("sender",""),pos:store.get("pos","")})},800)};
+/* name/position saved on the server (signed in on another phone) */
+function applyPrefs(pr){if(!pr)return;["sender","pos"].forEach(k=>{if(typeof pr[k]!=="string")return;store.set(k,pr[k]);panels.forEach(x=>{const e=$(x.id+"-"+k);if(e&&document.activeElement!==e)e.value=pr[k]})});panels.forEach(x=>x.update())}
 const panels=[];
 function aliasOptions(sel){return aliases.map(a=>`<option${a===sel?" selected":""}>${esc(a)}</option>`).join("")}
 function refreshAliasSelects(){panels.forEach(p=>{const s=$(p.id+"-from");const cur=s.value;s.innerHTML=aliasOptions(aliases.includes(cur)?cur:store.get("from",aliases[0]));p.update()})}
@@ -917,8 +929,8 @@ function sendPanel(id,cfg){
   }};
   panels.push(p);
   $(id+"-sender").value=store.get("sender","");$(id+"-pos").value=store.get("pos","");
-  $(id+"-sender").addEventListener("input",()=>{store.set("sender",$(id+"-sender").value.trim());panels.forEach(x=>{if(x!==p)$(x.id+"-sender").value=$(id+"-sender").value;x.update()})});
-  $(id+"-pos").addEventListener("input",()=>{store.set("pos",$(id+"-pos").value.trim());panels.forEach(x=>{if(x!==p)$(x.id+"-pos").value=$(id+"-pos").value;x.update()})});
+  $(id+"-sender").addEventListener("input",()=>{store.set("sender",$(id+"-sender").value.trim());panels.forEach(x=>{if(x!==p)$(x.id+"-sender").value=$(id+"-sender").value;x.update()});savePrefs()});
+  $(id+"-pos").addEventListener("input",()=>{store.set("pos",$(id+"-pos").value.trim());panels.forEach(x=>{if(x!==p)$(x.id+"-pos").value=$(id+"-pos").value;x.update()});savePrefs()});
   $(id+"-subj").addEventListener("input",()=>{subjEdited=true});
   $(id+"-body").addEventListener("input",()=>{bodyEdited=true});
   /* entering the Send step: pick up the customer's email from the earlier steps */
@@ -938,6 +950,7 @@ function sendPanel(id,cfg){
   /* ---------- preview (called by the wizard when this step opens) ---------- */
   p.preview=async()=>{
     if(!window.jspdf){toast("PDF tool is still loading. Check your internet and try again.");return false}
+    if(window.XFM&&XFM.checkRef)await XFM.checkRef(cfg.kind);
     const e=cfg.check();if(e){toast(e);return false}
     if(!/\d\s*\.pdf$/i.test(cfg.filename())){toast("Finish the document number first, e.g. …2026-145");p.focus={qq:"qp-ref",ii:"i-no",cc:"c-no",rr:"r-no",cf:"kc-no"}[id];return false}p.focus=null;
     $(id+"-done").hidden=true;$(id+"-acts").hidden=false;summary();XK.wizSync&&XK.wizSync();
@@ -966,7 +979,7 @@ function sendPanel(id,cfg){
     if(e.target.closest("[data-wshare]"))share();if(e.target.closest("[data-home]"))XK.go("home");if(e.target.closest("[data-new]")&&confirm("Clear this form and start a new one? The one you sent is saved in WorkDrive."))XK.fresh()});
   async function share(){if(!blob)return;run(false).catch(()=>{});const res=await deliverPdf(blob,cfg.filename(),$(id+"-subj").value,"");if(res==="saved")toast("PDF saved")}
   $(id+"-share").onclick=share;
-  $(id+"-open").onclick=()=>{if(url)window.open(url,"_blank","noopener")};
+  $(id+"-open").onclick=()=>{if(nativeApp()){if(blob)nativeShare(blob,cfg.filename(),cfg.filename(),"").catch(()=>{});return}if(url)window.open(url,"_blank","noopener")};
   renderR();fillFrom();return p;
 }
 
@@ -1429,7 +1442,7 @@ const MT=[
 ];
 function msgs(){const box=$("m-list");box.innerHTML="";MT.forEach(([title,fn],i)=>{const text=fn()+`\n\nXtreme Facilities Management\n${PHONE} | ${WEB}`;const d=document.createElement("div");d.className="tpl";d.innerHTML=`<h3>${title}</h3><p class="msg" id="mt${i}"></p><div class="actions"><button class="btn" type="button" data-copy="mt${i}">Copy</button><a class="btn primary" target="_blank" rel="noopener">Send on WhatsApp</a></div>`;d.querySelector(".msg").textContent=text;d.querySelector("a").href=waLink($("m-phone").value,text);box.appendChild(d)})}
 ["m-name","m-phone","m-date","m-time","m-amt"].forEach(id=>$(id).addEventListener("input",msgs));$("m-svc").addEventListener("change",msgs);msgs();
-window.XK=Object.assign(window.XK||{},{sendPanel,pdfKit,deliverPdf,copySync,STAMP,panels,refreshFroms:()=>panels.forEach(p=>p.fillFrom())});
+window.XK=Object.assign(window.XK||{},{sendPanel,pdfKit,deliverPdf,copySync,STAMP,panels,applyPrefs,refreshFroms:()=>panels.forEach(p=>p.fillFrom())});
 })();
 
 </script>
@@ -1543,7 +1556,7 @@ function fill(o){F.forEach(id=>{$(id).value=o[id]||""});if(!o["kc-cert"])$("kc-c
   apts=(o.apts&&o.apts.length?o.apts:[old]).map(a=>({...newApt(),...Object.fromEntries(Object.entries(a).filter(([,v])=>v!=null))}));renderApts();works=(o.works&&o.works.length?o.works:[{d:"",q:"",s:"Completed"}]).map(w=>({...w}));renderWorks();
   photos=[];renderPhotos();const sg=o.sig||{};Object.keys(pads).forEach(k=>pads[k].load(sg[k]));cPanel&&cPanel.update()}
 function blank(){fill({"kc-no":"XFM/COC/2026-","kc-date":todayISO(),"kc-cert":DEF_CERT,types:["Deep cleaning"],status:"Completed"})}
-$("kc-new").onclick=()=>{if(confirm("Clear the form and start a new certificate?")){blank();window.scrollTo({top:0});toast("New certificate")}};
+$("kc-new").onclick=()=>{if(confirm("Clear the form and start a new certificate?")){blank();if(window.XFM&&XFM.assignRef)XFM.assignRef("coc");window.scrollTo({top:0});toast("New certificate")}};
 ["kc-client","kc-co","kc-no","kc-email"].forEach(id=>$(id).addEventListener("input",()=>{if(id==="kc-client"&&!$("kn-client").dataset.touched)$("kn-client").value=$("kc-client").value;cPanel&&cPanel.update()}));
 $("kn-client").addEventListener("input",()=>{$("kn-client").dataset.touched="1"});
 
@@ -1623,7 +1636,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.23";
+const VERSION="1.24";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};
@@ -1643,7 +1656,7 @@ const MODS=[
 const ALL=MODS.map(m=>m.k);
 const LABEL={quote:"Quotation",invoice:"Invoice",contract:"Contract",receipt:"Receipt",coc:"COC",messages:"Messages"};
 
-let MODE=null,ME=null,ZOHO=false,MAIL={on:false,froms:[],defaults:{}};
+let MODE=null,ME=null,ZOHO=false,MAIL={on:false,froms:[],defaults:{}},PREFS=null;
 const token=()=>SS.get("tok")||LS.get("tok",null);
 function saveToken(t,remember){SS.del("tok");LS.del("tok");if(remember)LS.set("tok",t);else SS.set("tok",t)}
 async function api(path,body){
@@ -1652,7 +1665,9 @@ async function api(path,body){
   if(r.status===401&&path!=="login"&&path!=="password"){signOut(true);throw new Error("Your session ended. Please sign in again.")}
   if(!r.ok)throw new Error(d.error||("Error "+r.status));
   return d}
-async function detect(){try{const r=await fetch("/api/ping",{cache:"no-store"});if(!r.ok)return "local";const d=await r.json();return d&&d.server?"server":"local"}catch(e){return "local"}}
+async function ping(){try{const r=await fetch("/api/ping",{cache:"no-store"});if(!r.ok)return "local";const d=await r.json();return d&&d.server?"server":"local"}catch(e){return "local"}}
+/* phones often open the app before the network is ready, so try a few times before working on-device */
+async function detect(){for(let i=0;i<3;i++){if(await ping()==="server")return "server";await wait(1200*(i+1))}return "local"}
 
 /* ---------- on-device fallback (only when the server part isn't deployed) ---------- */
 async function pbk(pw,salt){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);const b=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:new TextEncoder().encode(salt),iterations:150000},k,256);return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
@@ -1686,7 +1701,7 @@ function applyAccess(){
   $("tiles").innerHTML=allowed.map((m,i)=>`<button type="button" class="tile${allowed.length%2&&i===allowed.length-1?" wide":""}" data-tile="${m.k}"><span class="ti">${$(m.tab).querySelector("svg").outerHTML}</span><span><b>${m.t}</b><small>${m.d}</small></span></button>`).join("")||'<p class="note">No sections are switched on for your account yet. Ask the admin.</p>';
 }
 function enter(){lockUI(false);$("who-av").textContent=(ME.username[0]||"?").toUpperCase();applyAccess();greet();status();
-  if(window.XK&&XK.refreshFroms)XK.refreshFroms();go("home",true);toast(`Welcome, ${ME.username}`)}
+  if(window.XK&&XK.refreshFroms)XK.refreshFroms();if(window.XK&&XK.applyPrefs)XK.applyPrefs(PREFS);assignRefs();go("home",true);toast(`Welcome, ${ME.username}`)}
 function greet(){const h=new Date().getHours();$("h-hello").textContent=h<12?"Good morning":h<17?"Good afternoon":"Good evening";$("h-name").textContent=ME.username;
   $("h-date").textContent=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}
 function status(){
@@ -1700,7 +1715,7 @@ function status(){
 async function signIn(e){e&&e.preventDefault();const btn=$("g-go");const name=$("g-user").value.trim().toLowerCase(),pw=$("g-pw").value,rem=$("g-rem").checked;
   if(!name||!pw){$("g-err").textContent="Enter your username and password";return}
   btn.disabled=true;btn.classList.add("busy");$("g-err").textContent="";
-  try{let d;if(MODE==="server"){d=await api("login",{username:name,password:pw,remember:rem});saveToken(d.token,rem);const m=await api("me");ZOHO=m.zoho;MAIL=m.mail||MAIL;d.user=m.user}else d=await L.login(name,pw,rem);
+  try{let d;if(MODE==="server"){d=await api("login",{username:name,password:pw,remember:rem});saveToken(d.token,rem);const m=await api("me");ZOHO=m.zoho;MAIL=m.mail||MAIL;PREFS=m.prefs||null;d.user=m.user}else d=await L.login(name,pw,rem);
     ME=d.user;LS.set("remember",rem);$("g-pw").value="";ME.mustChange?showChange():enter()}
   catch(err){$("g-err").textContent=err.message;$("g-card").classList.remove("shake");void $("g-card").offsetWidth;$("g-card").classList.add("shake")}
   finally{btn.disabled=false;btn.classList.remove("busy")}}
@@ -1808,11 +1823,12 @@ function openSettings(){
     ${admin?"":`<p class="note" style="margin-top:4px">Your sections: ${MODS.filter(m=>can(m.k)).map(m=>LABEL[m.k]).join(", ")}</p>`}
     <div class="actions"><button class="btn" type="button" id="s-pw">Change password</button><button class="btn" type="button" id="s-out">Sign out</button></div></div>
   ${admin?`<div class="s-card"><h4>Users and access <span class="tag">up to 10 accounts</span></h4><div id="s-users">${server?'<p class="note">Loading…</p>':'<p class="note">Needs the server version. See README.txt.</p>'}</div></div>
+  <div class="s-card"><h4>Document numbers <span class="tag">automatic</span></h4><div id="s-refs">${server?'<p class="note">Loading…</p>':'<p class="note">Needs the server version. See README.txt.</p>'}</div></div>
   <div class="s-card"><h4>Zoho WorkDrive</h4><div id="s-zoho">${server?'<p class="note">Checking connection…</p>':'<p class="note">Needs the server version. See README.txt.</p>'}</div></div>
   <div class="s-card"><h4>Customer email (Zoho Mail)</h4><div id="s-mail">${server?'<p class="note">Loading…</p>':'<p class="note">Needs the server version. See README.txt.</p>'}</div></div>`:""}
   <p class="note" style="text-align:center">Xtreme · version ${VERSION}</p>`);
   $("s-pw").onclick=()=>{closeSheet();showChange()};$("s-out").onclick=()=>signOut(false);
-  if(admin&&server){renderUsers();renderZoho();renderMail()}
+  if(admin&&server){renderUsers();renderRefs();renderZoho();renderMail()}
 }
 const permBoxes=(sel)=>`<div class="perm">${MODS.map(m=>`<label><input type="checkbox" value="${m.k}"${sel.includes(m.k)?" checked":""}><span>${LABEL[m.k]}</span></label>`).join("")}</div>`;
 async function renderUsers(){const box=$("s-users");let d;try{d=await api("users")}catch(e){box.innerHTML=`<p class="err">${esc(e.message)}</p>`;return}
@@ -1837,6 +1853,12 @@ async function renderUsers(){const box=$("s-users");let d;try{d=await api("users
     if(a==="delete"&&!confirm(`Delete ${u.username}? This can't be undone.`))return;
     try{await api("users",{action:a,id});toast(a==="delete"?"User deleted":a==="disable"?`${u.username} is blocked`:`${u.username} is unblocked`);renderUsers()}catch(e){toast(e.message)}});
 }
+const REF_LABEL={quote:"Quotations",invoice:"Tax invoices",contract:"Contracts",receipt:"Receipts",coc:"Completion certificates"};
+async function renderRefs(d){const box=$("s-refs");if(!d)try{d=await api("refs")}catch(e){box.innerHTML=`<p class="err">${esc(e.message)}</p>`;return}
+  box.innerHTML=`<p class="note" style="margin-top:0">Every phone takes the next number from here. Numbers with a year start again at 1 each January. Change a number only to continue from an older sequence.</p>
+  ${d.refs.map(r=>`<div class="field"><label class="lbl" for="rf-${r.type}">${REF_LABEL[r.type]} · next is <b>${esc(r.ref)}</b></label><div class="conv-row"><input type="number" id="rf-${r.type}" min="1" inputmode="numeric" value="${r.n}"><button class="btn" type="button" data-rf="${r.type}">Set</button></div></div>`).join("")}<p class="err" id="rf-err"></p>`;
+  box.querySelectorAll("[data-rf]").forEach(b=>b.onclick=async()=>{const t=b.dataset.rf;$("rf-err").textContent="";
+    try{const r=await api("refs",{type:t,next:$("rf-"+t).value});toast(`Next ${REF_LABEL[t].toLowerCase()} number set`);renderRefs(r)}catch(e){$("rf-err").textContent=e.message}})}
 async function renderZoho(){const box=$("s-zoho");let st;try{st=await api("zoho/status")}catch(e){box.innerHTML=`<p class="err">${esc(e.message)}</p>`;return}
   ZOHO=!!st.connected;status();
   if(st.connected){box.innerHTML=`<div class="u-row"><span class="dot ${st.ok?"on":"warn"}"></span><b>${st.ok?"Connected":"Connected, folder not found"}</b><span class="tag">zoho.${esc(st.dc)}</span></div>
@@ -1877,7 +1899,32 @@ async function renderMail(){const box=$("s-mail");let m;try{m=await api("mail/st
   if($("m-on"))$("m-on").onchange=async()=>{try{await api("mail/toggle",{enabled:$("m-on").checked});await refreshMe();renderMail()}catch(e){toast(e.message)}};
   if($("m-test"))$("m-test").onclick=async()=>{$("m-err").textContent="";try{const r=await api("mail/test",{to:$("m-tto").value});toast(`Test sent from ${r.from}`)}catch(e){$("m-err").textContent=e.message}};
 }
-async function refreshMe(){if(MODE!=="server")return;try{const d=await api("me");ME={...ME,...d.user};ZOHO=d.zoho;MAIL=d.mail||MAIL;status();if(window.XK&&XK.refreshFroms)XK.refreshFroms()}catch(e){}}
+async function refreshMe(){if(MODE!=="server"||!ME)return;try{const d=await api("me");const perms=JSON.stringify(ME.perms);ME={...ME,...d.user};ZOHO=d.zoho;MAIL=d.mail||MAIL;status();
+  if(window.XK&&XK.refreshFroms)XK.refreshFroms();if(d.prefs&&JSON.stringify(d.prefs)!==JSON.stringify(PREFS)){PREFS=d.prefs;if(window.XK&&XK.applyPrefs)XK.applyPrefs(PREFS)}
+  if(perms!==JSON.stringify(ME.perms))applyAccess()}catch(e){}}
+/* Zoho, email and access settings live on the server. Re-read them whenever the app comes back to the
+   front and every couple of minutes, so a change made on one phone shows on every other phone. */
+let lastSync=Date.now();
+function syncSoon(){if(document.visibilityState!=="visible")return;if(MODE==="local"){ping().then(m=>{if(m!=="server")return;if(!ME)location.reload();else if(!syncSoon.told){syncSoon.told=1;toast("Server reachable again. Close and reopen the app to sync.")}});return}
+  if(Date.now()-lastSync<15e3)return;lastSync=Date.now();refreshMe()}
+document.addEventListener("visibilitychange",syncSoon);window.addEventListener("focus",syncSoon);window.addEventListener("online",syncSoon);window.addEventListener("pageshow",syncSoon);
+setInterval(()=>{lastSync=0;syncSoon()},120e3);
+async function savePrefs(p){if(MODE!=="server"||!ME)return;try{const d=await api("prefs",p);PREFS=d.prefs}catch(e){}}
+
+/* ---------- automatic document numbers (one shared sequence on the server) ---------- */
+const REF_FIELD={quote:"qp-ref",invoice:"i-no",contract:"c-no",receipt:"r-no",coc:"kc-no"};
+const KIND_TYPE={Quotations:"quote",Invoices:"invoice",Contracts:"contract",Receipts:"receipt","Completion Certificates":"coc"};
+function setRef(f,ref){f.value=ref;f.dataset.auto=ref;f.dispatchEvent(new Event("input",{bubbles:true}))}
+/* a field is ours to fill while it holds only the prefix or the number we gave it (not a certificate opened from history) */
+const autoOwned=f=>!/\d\s*$/.test(f.value)||f.value===f.dataset.auto;
+async function assignRef(t){const f=$(REF_FIELD[t]);if(!f||MODE!=="server"||!ME||!can(t))return;
+  f.readOnly=true;f.classList.add("autoref");f.title="Numbered automatically";
+  if(!autoOwned(f)||f.dataset.sent===f.value)return;
+  try{const d=await api(`ref/next?type=${t}`);if(autoOwned(f)&&f.dataset.sent!==f.value&&f.value!==d.ref)setRef(f,d.ref)}catch(e){}}
+function assignRefs(){Object.keys(REF_FIELD).forEach(assignRef)}
+/* just before the preview: if another phone used this number in the meantime, take the next free one */
+async function checkRef(kind){const t=KIND_TYPE[kind],f=t&&$(REF_FIELD[t]);if(!f||MODE!=="server"||!ME||!autoOwned(f)||f.dataset.sent===f.value)return;
+  try{const d=await api(`ref/next?type=${t}`);if(d.ref!==f.value){const had=f.dataset.auto;setRef(f,d.ref);if(had)toast(`Number updated to ${d.ref} (the previous one was just used on another phone)`)}}catch(e){}}
 
 /* ---------- document service used by every form ---------- */
 const b64=blob=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(blob)});
@@ -1896,9 +1943,10 @@ async function process(o){
   if(MODE!=="server")return {drive:{off:true},mail:o.email?{off:true}:{skippedByUser:true}};
   $("st-pill").classList.add("busy");
   try{const data=await b64(o.blob);const r=await api("process",{kind:o.kind,date:o.date,filename:o.filename,to:o.to,email:!!o.email,from:o.from,subject:o.subject,text:o.text,sig:o.sig,dedupe:!!o.dedupe,data});
-    if(r.drive&&r.drive.off)ZOHO=false;else if(r.drive&&!r.drive.error)ZOHO=true;status();return r}
+    if(r.drive&&r.drive.off)ZOHO=false;else if(r.drive&&!r.drive.error)ZOHO=true;status();
+    const f=$(REF_FIELD[KIND_TYPE[o.kind]]||"");if(f)f.dataset.sent=f.value;return r}
   finally{$("st-pill").classList.remove("busy")}}
-window.XFM={saveDoc,listDocs,findDoc,process,mail:()=>MAIL,isAdmin:()=>!!ME&&ME.role==="admin",can};
+window.XFM={saveDoc,listDocs,findDoc,process,mail:()=>MAIL,isAdmin:()=>!!ME&&ME.role==="admin",can,assignRef,checkRef,savePrefs};
 window.XK=Object.assign(window.XK||{},{renderPdf,go,fresh:()=>{const k=current;if(k&&k!=="home")SS.set("open",k==="khist"?"coc":k);location.reload()},wizSync:()=>Wiz.sync()});
 
 /* ---------- boot ---------- */
@@ -1910,7 +1958,7 @@ Wiz.init();
   splash(18,"Starting secure workspace");const t0=Date.now();
   MODE=await detect();splash(55,MODE==="server"?"Secure server connected":"Working on this device");
   $("g-mode").textContent=MODE==="server"?"Secure server sign-in":"On-device sign-in";$("g-rem").checked=LS.get("remember",false);
-  try{if(token()){splash(75,"Restoring your session");if(MODE==="server"){const d=await api("me");ME=d.user;ZOHO=d.zoho;MAIL=d.mail||MAIL}else{const d=await L.me();if(d)ME=d.user}}}catch(e){}
+  try{if(token()){splash(75,"Restoring your session");if(MODE==="server"){const d=await api("me");ME=d.user;ZOHO=d.zoho;MAIL=d.mail||MAIL;PREFS=d.prefs||null}else{const d=await L.me();if(d)ME=d.user}}}catch(e){}
   splash(92,"Loading documents");await wait(Math.max(0,(reduce?300:1500)-(Date.now()-t0)));
   if(ME){ME.mustChange?showChange():enter();const o=SS.get("open");if(o&&ME&&!ME.mustChange){SS.del("open");go(o)}}else showLogin("");
   splashOut()})();
