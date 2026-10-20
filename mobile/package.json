@@ -1,0 +1,21 @@
+{
+  "name": "xtreme-mobile",
+  "version": "1.24.0",
+  "private": true,
+  "description": "Android and iPhone app for Xtreme. It opens the live Netlify site, so every phone uses the same server, users and settings.",
+  "scripts": {
+    "config": "node scripts/config.mjs",
+    "sync": "npm run config && npx cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/filesystem": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/share": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.0.0"
+  }
+}

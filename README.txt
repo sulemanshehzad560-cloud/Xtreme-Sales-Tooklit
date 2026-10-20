@@ -65,6 +65,18 @@ WHAT'S NEW IN 1.20
   user can open, block/unblock, delete. Normal users never see Zoho or email
   settings and can't disconnect anything. The server enforces this too.
 
+PHONE APPS (ANDROID APK AND IPHONE)
+ The folder "mobile" holds the Android and iPhone app. Both open this Netlify site, so
+ every phone uses the same accounts, numbers, Zoho and email settings, and website
+ updates show in the apps straight away without a new build.
+ Build: GitHub > Actions > "Mobile apps" > Run workflow (about 10 minutes).
+ Download: on the repository page open Releases > "test-build".
+   Android: open the .apk on the phone and allow installing.
+   iPhone: needs an Apple Developer account. Add the secrets listed at the top of
+   .github/workflows/mobile.yml and every build goes to TestFlight automatically.
+ If the site address is not https://xtremesalestoolkit.netlify.app, set it once under
+ Settings > Secrets and variables > Actions > Variables > APP_URL.
+
 UPDATE FROM YOUR PHONE (GitHub website, about 5 minutes)
  Tip: in Chrome, tap the 3 dots > tick "Desktop site" so GitHub shows every button.
  1. Open github.com > your repository xtreme-sales-toolkit.

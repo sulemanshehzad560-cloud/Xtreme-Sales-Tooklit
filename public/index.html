@@ -839,7 +839,14 @@ function amountWords(t){const d=Math.floor(t+1e-9),f=Math.round((t-d)*100);retur
 
 /* ---------- sharing / email ---------- */
 let dl=null;try{window.claude&&window.claude.use&&window.claude.use("downloads").then(d=>{dl=d}).catch(()=>{})}catch(e){}
+/* inside the Android / iPhone app (Capacitor) the web share sheet and downloads aren't available: save to the app cache and use the native share sheet */
+const nativeApp=()=>{const c=window.Capacitor;return !!(c&&c.isNativePlatform&&c.isNativePlatform()&&c.Plugins&&c.Plugins.Filesystem&&c.Plugins.Share)};
+async function nativeShare(blob,name,title,text){const c=window.Capacitor.Plugins;
+  const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(blob)});
+  const w=await c.Filesystem.writeFile({path:String(name).replace(/[\\/:*?"<>|]/g,"-"),data,directory:"CACHE"});
+  try{await c.Share.share({title,text:text||undefined,files:[w.uri],dialogTitle:title});return "shared"}catch(e){if(/cancel/i.test(String(e&&e.message)))return "cancelled";throw e}}
 async function deliverPdf(blob,name,title,text){
+  if(nativeApp()){try{return await nativeShare(blob,name,title,text)}catch(e){}}
   // 1) native share sheet (Zoho Mail, WhatsApp, Gmail…)
   try{const f=new File([blob],name,{type:"application/pdf"});
     if(navigator.canShare&&navigator.canShare({files:[f]})){const data={files:[f],title};if(text)data.text=text;await navigator.share(data);return "shared"}}
@@ -972,7 +979,7 @@ function sendPanel(id,cfg){
     if(e.target.closest("[data-wshare]"))share();if(e.target.closest("[data-home]"))XK.go("home");if(e.target.closest("[data-new]")&&confirm("Clear this form and start a new one? The one you sent is saved in WorkDrive."))XK.fresh()});
   async function share(){if(!blob)return;run(false).catch(()=>{});const res=await deliverPdf(blob,cfg.filename(),$(id+"-subj").value,"");if(res==="saved")toast("PDF saved")}
   $(id+"-share").onclick=share;
-  $(id+"-open").onclick=()=>{if(url)window.open(url,"_blank","noopener")};
+  $(id+"-open").onclick=()=>{if(nativeApp()){if(blob)nativeShare(blob,cfg.filename(),cfg.filename(),"").catch(()=>{});return}if(url)window.open(url,"_blank","noopener")};
   renderR();fillFrom();return p;
 }
 

@@ -1,0 +1,20 @@
+{
+  "appId": "com.xtremefm.toolkit",
+  "appName": "Xtreme",
+  "webDir": "www",
+  "server": {
+    "url": "https://xtremesalestoolkit.netlify.app",
+    "allowNavigation": [
+      "xtremesalestoolkit.netlify.app"
+    ],
+    "errorPath": "offline.html"
+  },
+  "backgroundColor": "#000000",
+  "android": {
+    "allowMixedContent": false
+  },
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#000000"
+  }
+}
