@@ -1,4 +1,4 @@
-XTREME v1.23 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+XTREME v1.24 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
 =======================================================================
 
 This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
@@ -6,6 +6,25 @@ GitHub repository (xtreme-sales-toolkit). The COC site can be retired afterwards
 Your existing users, Zoho WorkDrive connection and saved quotations/invoices carry over.
 The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
+
+WHAT'S NEW IN 1.24
+- Automatic document numbers. Quotation ref, invoice no., contract no., receipt no.
+  and COC no. are filled in for you and can't be typed over. All phones share one
+  sequence on the server, so an Android phone and an iPhone never get the same number:
+    Quotations  XFM/QT/2026-146     Tax invoices  XFM-INV-0081
+    Contracts   XFM/CT/2026-1       Receipts      XFM-RCT-0001
+    COC         XFM/COC/2026-1
+  Numbers with a year start again at 1 every January. The first time, the app carries
+  on from the highest number already saved. If another phone uses a number while you
+  are filling a form, the preview takes the next free one and tells you.
+  Admin: Settings > Document numbers sets the next number (e.g. to continue an old book).
+- Settings follow you to every device. Zoho WorkDrive, Zoho Mail, users and numbering
+  were already stored on the server; the app now re-reads them whenever it is opened or
+  brought back to the front (and every 2 minutes), so a change made by the admin on an
+  Android phone shows on iPhones without signing out. Your name and position for the
+  PDF signature are now saved to your account too.
+- If the phone has no connection for a moment when the app opens, it retries instead of
+  dropping into on-device mode.
 
 WHAT'S NEW IN 1.23
 - Invoice: new "Add 5% VAT" switch on the Items step (on by default), like the
