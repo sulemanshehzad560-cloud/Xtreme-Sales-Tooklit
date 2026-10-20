@@ -72,7 +72,7 @@ PHONE APPS (ANDROID APK AND IPHONE)
  Build: GitHub > Actions > "Mobile apps" > Run workflow (about 10 minutes).
  Download: on the repository page open Releases > "test-build".
    Android: open the .apk on the phone and allow installing.
-   iPhone: needs an Apple Developer account. Add the secrets listed at the top of
+   iPhone: needs an Apple Developer account. Add the 4 secrets listed at the top of
    .github/workflows/mobile.yml and every build goes to TestFlight automatically.
  If the site address is not https://xtremesalestoolkit.netlify.app, set it once under
  Settings > Secrets and variables > Actions > Variables > APP_URL.

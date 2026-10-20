@@ -10,7 +10,8 @@
 #   Android release signing (otherwise a debug-signed test APK is built):
 #     Secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
 #   iPhone TestFlight upload (otherwise an unsigned .ipa is built):
-#     Secrets APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64 (App Store Connect API key, Admin role)
+#     Secrets APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_P8 (the text of the AuthKey .p8 file,
+#     pasted as is; ASC_KEY_P8_BASE64 also works). App Store Connect API key with Admin access.
 name: Mobile apps
 
 on:
@@ -98,6 +99,7 @@ jobs:
       TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
       ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
     steps:
       - uses: actions/checkout@v4
@@ -139,11 +141,12 @@ jobs:
           path: ${{ runner.temp }}/*.ipa
           if-no-files-found: error
       - name: Sign and upload to TestFlight
-        if: env.ASC_KEY_ID != '' && env.TEAM_ID != ''
+        if: env.ASC_KEY_ID != '' && env.TEAM_ID != '' && (env.ASC_KEY_P8 != '' || env.ASC_KEY_P8_BASE64 != '')
         working-directory: mobile/ios/App
         run: |
           KEY="$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
-          echo "$ASC_KEY_P8_BASE64" | base64 -D > "$KEY"
+          if [ -n "$ASC_KEY_P8" ]; then printf '%s\n' "$ASC_KEY_P8" > "$KEY"; else echo "$ASC_KEY_P8_BASE64" | base64 -D > "$KEY"; fi
+          grep -q "BEGIN PRIVATE KEY" "$KEY" || { echo "::error::ASC_KEY_P8 must be the whole .p8 file text, including the BEGIN/END PRIVATE KEY lines"; exit 1; }
           AUTH=(-allowProvisioningUpdates -authenticationKeyPath "$KEY" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID")
           xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos \
             -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/signed.xcarchive" \
