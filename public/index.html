@@ -1028,14 +1028,15 @@ function pdfKit(title,fromAlias){
     rows.forEach(r=>r.ht=r.h?Math.max(7,r.t.length*4.3+3):Math.max(6.5,r.t.length*3.9+2.7));
     k.ensure(rows[0].ht+(rows[1]?rows[1].ht:0));
     let segY=k.y,first=true;
+    /* no lines between the sub-items: the No., description and unit columns are one open box per heading */
     const close=()=>{const h=k.y-segY;if(h<=0)return;
+      (o.unit==null?[0,1]:[...Array(m0).keys()]).forEach(c=>{const x1=o.unit==null&&c===1?C[m0]:C[c+1];k.box(C[c],segY,x1-C[c],h)});
       o.cells.forEach(c=>{const x0=C[c.col],x1=C[c.col+1]||R;k.box(x0,segY,x1-x0,h);
         if(first&&c.text){const cx=(x0+x1)/2,cy=segY+h/2;k.fit(c.text,cx,cy+(c.cap?0.4:1.5),x1-x0-3,{s:c.b?10:9,a:"center"});if(c.cap)k.txt(c.cap,cx,cy+4.3,{a:"center",s:7,c:GR})}});first=false};
     rows.forEach(r=>{if(k.y+r.ht>BOTTOM){close();doc.addPage();k.decor();k.y=34;o.head();segY=k.y}
-      if(r.h){k.box(C[0],k.y,C[1]-C[0],r.ht,o.hfill);k.box(C[1],k.y,C[m0]-C[1],r.ht,o.hfill);if(o.no!=null)k.txt(String(o.no),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});
+      if(r.h){if(o.hfill){doc.setFillColor(...o.hfill);doc.rect(C[0],k.y,C[m0]-C[0],r.ht,"F")}if(o.no!=null)k.txt(String(o.no),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});
         doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(r.t,C[1]+2,k.y+4.8)}
-      else{if(o.unit==null){k.box(C[0],k.y,C[1]-C[0],r.ht);k.box(C[1],k.y,C[m0]-C[1],r.ht)}else for(let c=0;c<m0;c++)k.box(C[c],k.y,C[c+1]-C[c],r.ht);
-        if(o.numRows)k.txt(String(r.i),(C[0]+C[1])/2,k.y+4.5,{a:"center",s:8.8,c:GR});
+      else{if(o.numRows)k.txt(String(r.i),(C[0]+C[1])/2,k.y+4.5,{a:"center",s:8.8,c:GR});
         doc.setFont("helvetica","normal");doc.setFontSize(8.8);doc.setTextColor(20,20,20);doc.text(r.t,C[1]+5,k.y+4.5);
         if(o.unit!=null&&r.n)k.txt(r.n,(C[o.unit]+C[o.unit+1])/2,k.y+4.5,{a:"center",s:8.8})}
       k.y+=r.ht});
