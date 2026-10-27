@@ -1,4 +1,4 @@
-XTREME v1.26 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+XTREME v1.27 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
 =======================================================================
 
 This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
@@ -6,6 +6,9 @@ GitHub repository (xtreme-sales-toolkit). The COC site can be retired afterwards
 Your existing users, Zoho WorkDrive connection and saved quotations/invoices carry over.
 The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
+
+WHAT'S NEW IN 1.27
+- The Send step no longer shows the Zoho WorkDrive note (PDFs still save there in the background).
 
 WHAT'S NEW IN 1.26
 - After Submit, the app no longer shows the Zoho WorkDrive copy (it still saves every

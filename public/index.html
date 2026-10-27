@@ -367,8 +367,6 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
 .rcpts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .rc{display:inline-flex;align-items:center;gap:6px;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.4);color:var(--gold-hi);border-radius:999px;padding:6px 6px 6px 13px;font-size:14px;font-weight:500;max-width:100%;word-break:break-all}
 .rc button{appearance:none;border:0;background:rgba(0,0,0,.4);color:var(--text);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:11px;flex-shrink:0}
-.always{display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:12px;border-radius:var(--r-sm);background:rgba(61,220,132,.07);border:1px solid rgba(61,220,132,.22);font-size:13.5px;color:#cfe9da}
-.always svg{width:20px;height:20px;flex-shrink:0;color:var(--ok)}
 
 /* preview */
 .pv-sum{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:6px 14px;margin-bottom:14px}
@@ -892,7 +890,6 @@ function sendPanel(id,cfg){
         <div class="field"><label class="lbl" for="${id}-body">Message</label><textarea id="${id}-body" style="min-height:200px"></textarea></div>
       </details>
     </div>
-    <div class="always">${I.cloud}<span>A copy of the PDF always saves to Zoho WorkDrive, whether or not you email it.</span></div>
   </div>
   <div class="panel">
     <h2 class="ph">Signature on the PDF</h2>
@@ -1703,7 +1700,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.26";
+const VERSION="1.27";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};
