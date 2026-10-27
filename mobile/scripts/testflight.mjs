@@ -16,10 +16,12 @@ function token() {
   const sig = crypto.sign("sha256", Buffer.from(body), { key: pem, dsaEncoding: "ieee-p1363" });
   return body + "." + sig.toString("base64url");
 }
-async function asc(path, opt = {}) {
+// Apple's API sometimes answers 500/503 or rate-limits: retry those a few times
+async function asc(path, opt = {}, tries = 5) {
   const r = await fetch(path.startsWith("http") ? path : API + path, { ...opt, headers: { Authorization: "Bearer " + token(), "Content-Type": "application/json", ...(opt.headers || {}) } });
   const text = await r.text();
   const d = text ? JSON.parse(text) : {};
+  if ((r.status >= 500 || r.status === 429) && tries > 1) { console.log(`Apple returned ${r.status}, retrying…`); await sleep(15000); return asc(path, opt, tries - 1); }
   if (!r.ok) { const e = new Error(`${opt.method || "GET"} ${path} -> ${r.status} ${(d.errors || []).map((x) => x.detail || x.title).join("; ")}`); e.status = r.status; throw e; }
   return d;
 }
@@ -40,7 +42,7 @@ for (let i = 0; i < 90; i++) {
 if (!build || build.attributes.processingState !== "VALID") throw new Error("Build still processing after 30 minutes. It will appear in TestFlight later; add it to the group there.");
 
 // 2. the internal group "Team"
-let groups = (await asc(`/apps/${app.id}/betaGroups?limit=50`)).data.filter((g) => g.attributes.isInternalGroup);
+let groups = (await asc(`/betaGroups?filter[app]=${app.id}&limit=50`)).data.filter((g) => g.attributes.isInternalGroup);
 let team = groups.find((g) => g.attributes.name.toLowerCase() === "team");
 if (!team) {
   team = (await asc("/betaGroups", { method: "POST", body: JSON.stringify({ data: { type: "betaGroups", attributes: { name: "Team", isInternalGroup: true }, relationships: { app: { data: { type: "apps", id: app.id } } } } }) })).data;
