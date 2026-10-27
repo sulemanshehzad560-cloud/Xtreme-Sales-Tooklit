@@ -1040,6 +1040,10 @@ function pdfKit(title,fromAlias){
         if(o.unit!=null&&r.n)k.txt(r.n,(C[o.unit]+C[o.unit+1])/2,k.y+4.5,{a:"center",s:8.8})}
       k.y+=r.ht});
     close()};
+  /* item tables: the No. / description / unit columns get one outer border and no inner lines */
+  k.openArea=x1=>{k._oa={y:k.y,x1}};
+  k.closeArea=()=>{const a=k._oa;k._oa=null;if(a&&k.y>a.y)k.box(L,a.y,a.x1-L,k.y-a.y)};
+  {const add=doc.addPage.bind(doc);doc.addPage=(...a)=>{k.closeArea();return add(...a)}}
   k.decor();return k;
 }
 
@@ -1162,10 +1166,10 @@ function buildQuotePdf(){
   k.band(L,k.y,W,6,"COMMERCIAL OFFER");k.y+=6;
   const blocks=q.lines.some(l=>l.group),multi=q.n>1||blocks;
   const C=blocks?[L,L+10,L+98,L+143,R]:multi?[L,L+10,L+106,L+126,L+156,R]:[L,L+106,L+126,L+156,R];
-  const head=blocks?()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");[["No.",0,"center"],["Area",1,"left"],["No. of Units",2,"center"],["Price (AED)",3,"center"]].forEach(([t,i,a])=>k.txt(t,a==="left"?C[i]+2:(C[i]+C[i+1])/2,k.y+4.7,{b:1,s:8.5,a}));for(let i=0;i<4;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7}:()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");
+  const head=blocks?()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");[["No.",0,"center"],["Area",1,"left"],["No. of Units",2,"center"],["Price (AED)",3,"center"]].forEach(([t,i,a])=>k.txt(t,a==="left"?C[i]+2:(C[i]+C[i+1])/2,k.y+4.7,{b:1,s:8.5,a}));for(let i=0;i<4;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7;k.openArea(C[3])}:()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");
     const hs=multi?[["No.",0,"center"],["Service",1,"left"],["Visits",2,"center"],["Per Visit (AED)",3,"right"],["Total (AED)",4,"right"]]:[["Service",0,"left"],["Visits",1,"center"],["Per Visit (AED)",2,"right"],["Total (AED)",3,"right"]];
     hs.forEach(([t,i,a])=>{const x=a==="left"?C[i]+2:a==="center"?(C[i]+C[i+1])/2:C[i+1]-2;k.txt(t,x,k.y+4.7,{b:1,s:8.5,a})});
-    for(let i=0;i<C.length-1;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7};
+    for(let i=0;i<C.length-1;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7;k.openArea(multi?C[2]:C[1])};
   head();
   const scope=g("qp-scope").split("\n").map(s=>s.trim()).filter(Boolean);
   const scopeLines=[];scope.forEach(s=>{if(multi&&/:$/.test(s)){scopeLines.push({h:1,t:s});return}const w=multi?W-7:C[1]-C[0]-7;k.split("•  "+s,w,8.3).forEach((l,j)=>scopeLines.push({t:j?"    "+l:l}))});
@@ -1189,6 +1193,7 @@ function buildQuotePdf(){
       k.txt(String(i+1),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(tl,C[1]+2,k.y+4.8);
       k.txt(String(l.visits),(C[2]+C[3])/2,k.y+4.8,{a:"center",s:9});k.txt(money(l.unit),C[4]-2,k.y+4.8,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+4.8,{a:"right",s:9,b:1});k.y+=h});
   }
+  k.closeArea();
   const TC=blocks?C[2]:multi?C[2]:C[1],VC=blocks?C[3]:multi?C[4]:C[3];
   const tot=[["Total Excluding VAT",money(q.sub)],["Discount",q.discAmt?"-"+money(q.discAmt):"0.00"]];
   if(q.vatOn)tot.push(["Total VAT @ 5%",money(q.vat)]);
@@ -1263,7 +1268,7 @@ function buildInvoicePdf(){
   k.y+=4;k.band(L,k.y,W,6,"BILL TO");k.y+=6;
   [["Client / Company",g("i-client")],["Address",g("i-addr")],["Tel / Fax",g("i-tel")],["Email",g("i-email")],["Client TRN",g("i-trn")]].forEach(([l,v],j)=>{if(v||!j)k.row(l,v)});
   k.y+=4;const C=[L,L+10,L+92,L+112,L+132,L+158,R];
-  const head=()=>{doc.setFillColor(...BLACK);doc.rect(L,k.y,W,9,"F");[["No.",0,"center"],["Item & Description",1,"left"],["Unit",2,"center"],["Frequency",3,"center"],["Per Visit Rate (AED)",4,"center"],["Total Amount (AED)",5,"center"]].forEach(([t,i,a])=>{const x=a==="center"?(C[i]+C[i+1])/2:C[i]+2;const ls=k.split(t,C[i+1]-C[i]-2,8,1);doc.setTextColor(255,255,255);doc.text(ls,x,k.y+(ls.length>1?3.6:5.6),{align:a})});k.y+=9};
+  const head=()=>{doc.setFillColor(...BLACK);doc.rect(L,k.y,W,9,"F");[["No.",0,"center"],["Item & Description",1,"left"],["Unit",2,"center"],["Frequency",3,"center"],["Per Visit Rate (AED)",4,"center"],["Total Amount (AED)",5,"center"]].forEach(([t,i,a])=>{const x=a==="center"?(C[i]+C[i+1])/2:C[i]+2;const ls=k.split(t,C[i+1]-C[i]-2,8,1);doc.setTextColor(255,255,255);doc.text(ls,x,k.y+(ls.length>1?3.6:5.6),{align:a})});k.y+=9;k.openArea(C[3])};
   head();if(g("i-cov")){const cv=k.split(g("i-cov"),W-24,8.5,1),ch=Math.max(6.5,cv.length*3.7+2.8);k.box(L,k.y,20,ch,LAB);k.box(L+20,k.y,W-20,ch);k.txt("Coverage",L+2,k.y+4.4,{b:1,s:8.5});doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(20,20,20);k.lines(cv,L+22,k.y+4.4,3.7);k.y+=ch}
   const filled=items.filter(it=>it.d||it.r);const rows=filled.length;let n=0;
   for(let j=0;j<rows;j++){const it=filled[j];
@@ -1275,6 +1280,7 @@ function buildInvoicePdf(){
       k.txt(it.u,(C[2]+C[3])/2,k.y+4.4,{a:"center",s:8.5});k.txt(it.f===""?"1":it.f,(C[3]+C[4])/2,k.y+4.4,{a:"center",s:8.5});
       if(it.r!=="")k.txt(money(num(it.r)),C[5]-2,k.y+4.4,{a:"right",s:8.5});k.txt(it.r!==""?money(lineTotal(it)):"",R-2,k.y+4.4,{a:"right",s:8.5,b:1})}
     k.y+=h}
+  k.closeArea();
   const {net,vatOn,vat,total}=inv();
   const WC=C[2],wl=k.split(amountWords(total),WC-L-4,8.5,1),wb=Math.max(15.5,wl.length*4+5),bh=6.5+wb;
   if(k.y+bh>272){doc.addPage();k.decor();k.y=34}
@@ -1366,12 +1372,13 @@ function buildContractPdf(){
   const intro=k.split(`Xtreme Facilities Management is pleased to provide the following ${ctType.toLowerCase()} maintenance services under the terms below.`,W,9.5);doc.setFont("helvetica","normal");doc.setFontSize(9.5);doc.setTextColor(20,20,20);doc.text(intro,L,k.y);k.y+=intro.length*4.5+3;
   k.band(L,k.y,W,6,"SERVICES & PRICING");k.y+=6;
   const C=[L,L+10,L+106,L+130,L+156,R];
-  const head=()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");[["No.",0,"center"],["Service",1,"left"],[`Visits / ${per}`,2,"center"],["Per Visit (AED)",3,"right"],[`Per ${per[0].toUpperCase()+per.slice(1)} (AED)`,4,"right"]].forEach(([t,i,a])=>{const x=a==="left"?C[i]+2:a==="center"?(C[i]+C[i+1])/2:C[i+1]-2;k.txt(t,x,k.y+4.7,{b:1,s:8.3,a})});for(let i=0;i<5;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7};
+  const head=()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");[["No.",0,"center"],["Service",1,"left"],[`Visits / ${per}`,2,"center"],["Per Visit (AED)",3,"right"],[`Per ${per[0].toUpperCase()+per.slice(1)} (AED)`,4,"right"]].forEach(([t,i,a])=>{const x=a==="left"?C[i]+2:a==="center"?(C[i]+C[i+1])/2:C[i+1]-2;k.txt(t,x,k.y+4.7,{b:1,s:8.3,a})});for(let i=0;i<5;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7;k.openArea(C[2])};
   head();
   c.lines.forEach((l,i)=>{if(l.group){k.group({C,head,no:i+1,title:l.title,rows:l.rows,unit:null,cells:[{col:2,text:String(l.visits)},{col:3,text:money(l.unit)},{col:4,text:money(l.sub),b:1}]});return}
     const tl=k.split(l.title,C[2]-C[1]-4,9,1),h=Math.max(7,tl.length*4.3+3);if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
     for(let j=2;j<5;j++)k.box(C[j],k.y,C[j+1]-C[j],h);k.txt(String(i+1),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(tl,C[1]+2,k.y+4.8);
     k.txt(String(l.visits),(C[2]+C[3])/2,k.y+4.8,{a:"center",s:9});k.txt(money(l.unit),C[4]-2,k.y+4.8,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+4.8,{a:"right",s:9,b:1});k.y+=h});
+  k.closeArea();
   const TC=L+62,VC=C[4],LW=VC-TC-4;const P=per[0].toUpperCase()+per.slice(1);
   const tot=[[`Total per ${P} excl. VAT`,money(c.per)],["Discount",c.discAmt?"-"+money(c.discAmt):"0.00"]];if(c.vatOn)tot.push(["VAT @ 5%",money(c.vat)]);
   k.ensure(tot.length*6.5+30);
