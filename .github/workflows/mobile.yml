@@ -21,6 +21,14 @@ on:
         description: "Netlify site address (leave empty for the default)"
         required: false
         default: ""
+      testers:
+        description: "Add these emails to the internal TestFlight group Team (comma separated; must be App Store Connect users)"
+        required: false
+        default: ""
+      only_testflight:
+        description: "Skip building: just give the newest uploaded iPhone build to the testers"
+        type: boolean
+        default: false
   push:
     paths:
       - "mobile/**"
@@ -40,6 +48,7 @@ env:
 
 jobs:
   android:
+    if: ${{ !inputs.only_testflight }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -91,6 +100,7 @@ jobs:
           if-no-files-found: error
 
   ios:
+    if: ${{ !inputs.only_testflight }}
     runs-on: macos-latest
     defaults:
       run:
@@ -171,6 +181,7 @@ jobs:
   # Waits for Apple to process the upload, then gives it to the internal TestFlight testers.
   testflight:
     needs: ios
+    if: ${{ always() && (needs.ios.result == 'success' || inputs.only_testflight) }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
@@ -180,7 +191,11 @@ jobs:
       ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
       TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       APP_ID: com.xtremefm.toolkit
+      LATEST: ${{ inputs.only_testflight && '1' || '' }}
     steps:
+      # tester emails are read from the run request (not echoed), and masked in the log
+      - name: Hide tester emails in the log
+        run: jq -r '.inputs.testers // ""' "$GITHUB_EVENT_PATH" | tr ',; ' '\n\n\n' | while read -r e; do [ -n "$e" ] && echo "::add-mask::$e"; done; true
       - uses: actions/checkout@v4
         if: env.ASC_KEY_ID != '' && env.TEAM_ID != ''
       - uses: actions/setup-node@v4
@@ -193,7 +208,7 @@ jobs:
 
   publish:
     needs: [android, ios]
-    if: always() && (needs.android.result == 'success' || needs.ios.result == 'success')
+    if: ${{ always() && !inputs.only_testflight && (needs.android.result == 'success' || needs.ios.result == 'success') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
