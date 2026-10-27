@@ -18,7 +18,9 @@ function token() {
 }
 // Apple's API sometimes answers 500/503 or rate-limits: retry those a few times
 async function asc(path, opt = {}, tries = 5) {
-  const r = await fetch(path.startsWith("http") ? path : API + path, { ...opt, headers: { Authorization: "Bearer " + token(), "Content-Type": "application/json", ...(opt.headers || {}) } });
+  let r;
+  try { r = await fetch(path.startsWith("http") ? path : API + path, { ...opt, signal: AbortSignal.timeout(90000), headers: { Authorization: "Bearer " + token(), "Content-Type": "application/json", ...(opt.headers || {}) } }); }
+  catch (e) { if (tries > 1) { console.log(`No answer from Apple (${e.cause?.code || e.name}), retrying…`); await sleep(15000); return asc(path, opt, tries - 1); } throw e; }
   const text = await r.text();
   const d = text ? JSON.parse(text) : {};
   if ((r.status >= 500 || r.status === 429) && tries > 1) { console.log(`Apple returned ${r.status}, retrying…`); await sleep(15000); return asc(path, opt, tries - 1); }
@@ -66,7 +68,7 @@ if (want.length) {
     } catch (e) {
       if (e.status !== 409) throw e;
       const t = (await asc(`/betaTesters?filter[email]=${encodeURIComponent(email)}&limit=1`)).data[0];
-      if (t) { await asc(`/betaGroups/${team.id}/relationships/betaTesters`, { method: "POST", body: JSON.stringify({ data: [{ type: "betaTesters", id: t.id }] }) }); console.log(`${masked} was already a tester; added to "Team"`); }
+      if (t) { try { await asc(`/betaGroups/${team.id}/relationships/betaTesters`, { method: "POST", body: JSON.stringify({ data: [{ type: "betaTesters", id: t.id }] }) }) } catch (e2) { if (e2.status !== 409) throw e2 } console.log(`${masked} is a tester in "Team"`); }
     }
   }
 }
