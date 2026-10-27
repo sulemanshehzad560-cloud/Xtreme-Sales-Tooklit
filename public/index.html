@@ -225,8 +225,11 @@ body.at-home .wrap{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
 input[type=text],input[type=password],input[type=tel],input[type=date],input[type=number],input[type=email],select,textarea{background:var(--surface2);border:1px solid var(--line2);border-radius:var(--r-sm);color:var(--text);padding:12px 13px;min-height:48px;transition:border-color .18s,box-shadow .18s}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--goldfill);box-shadow:0 0 0 3px rgba(212,175,90,.18),0 0 18px rgba(212,175,90,.12)}
 input::placeholder,textarea::placeholder{color:#6d6556}
-input.autoref{color:var(--goldfill);font-weight:700;letter-spacing:.3px;cursor:default}
-input.autoref:focus{box-shadow:none;border-color:var(--line2)}
+input.autoref{color:var(--goldfill);font-weight:700;letter-spacing:.3px}
+.subrows .sr-row{display:grid;grid-template-columns:1fr 92px auto;gap:8px;align-items:center;margin-bottom:8px}
+.subrows .sr-row .linkbtn{padding:6px 4px}
+.subrows .sr-h{display:grid;grid-template-columns:1fr 92px auto;gap:8px;margin-bottom:4px}
+.subrows .sr-h span{font-size:12px;color:var(--muted)}
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) sepia(1) saturate(3) hue-rotate(5deg)}
 select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23D4AF5A' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
 .chip span{background:var(--surface2);border-color:var(--line2);border-radius:999px;padding:10px 16px;font-size:14.5px}
@@ -475,12 +478,13 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
   <div class="field"><span class="lbl">Service</span><div class="chips" id="q-svc"></div></div>
   </div>
   <div class="field row2">
-    <div><span class="lbl">Visits / qty</span><div class="stepper"><button type="button" id="v-minus" aria-label="Fewer visits">−</button><output id="v-out">1</output><button type="button" id="v-plus" aria-label="More visits">+</button></div></div>
-    <div><label class="lbl" for="q-rate">Price per visit (AED)</label><input type="text" id="q-rate" inputmode="decimal" class="rate"></div>
+    <div id="q-vw"><span class="lbl">Visits / qty</span><div class="stepper"><button type="button" id="v-minus" aria-label="Fewer visits">−</button><output id="v-out">1</output><button type="button" id="v-plus" aria-label="More visits">+</button></div></div>
+    <div><label class="lbl" for="q-rate" id="q-rate-l">Price per visit (AED)</label><input type="text" id="q-rate" inputmode="decimal" class="rate"></div>
   </div>
   <p class="note" id="q-ratenote" style="margin:-8px 0 14px"></p>
   <div class="field"><label class="lbl" for="q-desc" id="q-desc-l">Description (shown on the quote)</label><input type="text" id="q-desc"></div>
-  <div class="actions" style="margin:0 0 16px"><button class="btn" type="button" id="q-add">+ Add preset service</button><button class="btn" type="button" id="q-addc">+ Add custom item</button></div>
+  <div class="field" id="q-rows" hidden></div>
+  <div class="actions" style="margin:0 0 16px"><button class="btn" type="button" id="q-add">+ Add preset service</button><button class="btn" type="button" id="q-addc">+ Add custom item</button><button class="btn" type="button" id="q-addg">+ Heading with sub-items</button></div>
   <div class="field" id="q-items" hidden></div>
 </div>
 </div>
@@ -581,6 +585,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
   <div class="field" style="margin-top:4px"><label class="switch"><input type="checkbox" id="i-vat" checked> Add 5% VAT</label></div>
   <div class="actions" style="margin-top:4px">
     <button class="btn" type="button" id="i-add">+ Add item</button>
+    <button class="btn" type="button" id="i-addg">+ Heading with sub-items</button>
     <button class="btn" type="button" id="i-addq">+ Add from price list</button>
   </div>
   <div id="i-pick" hidden style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px">
@@ -629,12 +634,13 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
   <div class="field"><span class="lbl">Service</span><div class="chips" id="c-svc"></div></div>
   </div>
   <div class="field row2">
-    <div><span class="lbl" id="cv-l">Visits per month</span><div class="stepper"><button type="button" id="cv-minus" aria-label="Fewer visits">−</button><output id="cv-out">1</output><button type="button" id="cv-plus" aria-label="More visits">+</button></div></div>
-    <div><label class="lbl" for="c-rate">Price per visit (AED)</label><input type="text" id="c-rate" inputmode="decimal" class="rate"></div>
+    <div id="c-vw"><span class="lbl" id="cv-l">Visits per month</span><div class="stepper"><button type="button" id="cv-minus" aria-label="Fewer visits">−</button><output id="cv-out">1</output><button type="button" id="cv-plus" aria-label="More visits">+</button></div></div>
+    <div><label class="lbl" for="c-rate" id="c-rate-l">Price per visit (AED)</label><input type="text" id="c-rate" inputmode="decimal" class="rate"></div>
   </div>
   <p class="note" id="c-ratenote" style="margin:-8px 0 14px"></p>
   <div class="field"><label class="lbl" for="c-desc" id="c-desc-l">Description (shown on the contract)</label><input type="text" id="c-desc"></div>
-  <div class="actions" style="margin:0 0 16px"><button class="btn" type="button" id="c-add">+ Add preset service</button><button class="btn" type="button" id="c-addc">+ Add custom item</button></div>
+  <div class="field" id="c-rows" hidden></div>
+  <div class="actions" style="margin:0 0 16px"><button class="btn" type="button" id="c-add">+ Add preset service</button><button class="btn" type="button" id="c-addc">+ Add custom item</button><button class="btn" type="button" id="c-addg">+ Heading with sub-items</button></div>
   <div class="field" id="c-items" hidden></div>
   <div class="field row2" style="align-items:end"><div><label class="lbl" for="c-disc">Discount (%)</label><input type="number" id="c-disc" min="0" max="100" value="0" inputmode="decimal"></div><div style="padding-bottom:10px"><label class="switch"><input type="checkbox" id="c-vat" checked> Add 5% VAT</label></div></div>
 </div>
@@ -1006,7 +1012,7 @@ function pdfKit(title,fromAlias){
   k.ensure=h=>{if(k.y+h>BOTTOM){doc.addPage();k.decor();k.y=34}};
   /* rows grow to fit wrapped values, so long names, emails and addresses never spill out of their cells */
   k.lines=(ls,x,y,lh=3.9)=>{ls.forEach((t,i)=>doc.text(t,x,y+i*lh))};
-  k.pair=(l1,v1,l2,v2)=>{const a=k.split(v1||"",58,9),b=k.split(v2||"",W-132,9),h=Math.max(7,Math.max(a.length,b.length)*3.9+3.1);k.ensure(h);
+  k.pair=(l1,v1,l2,v2)=>{if(!String(v1||"").trim()&&!String(v2||"").trim())return;const a=k.split(v1||"",58,9),b=k.split(v2||"",W-132,9),h=Math.max(7,Math.max(a.length,b.length)*3.9+3.1);k.ensure(h);
     k.box(L,k.y,32,h,LAB);k.box(L+32,k.y,62,h);k.box(L+94,k.y,34,h,LAB);k.box(L+128,k.y,W-128,h);
     k.fit(l1,L+2,k.y+4.7,29);k.fit(l2,L+96,k.y+4.7,31);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(20,20,20);k.lines(a,L+34,k.y+4.7);k.lines(b,L+130,k.y+4.7);k.y+=h};
   k.wide=(l,v)=>{const a=k.split(v||"",W-36,9),h=Math.max(7,a.length*3.9+3.1);k.ensure(h);k.box(L,k.y,32,h,LAB);k.box(L+32,k.y,W-32,h);
@@ -1014,6 +1020,31 @@ function pdfKit(title,fromAlias){
   k.row=(l,v,o={})=>{const lw=o.lw||38,s=o.s||9,lh=s*0.43,a=k.split(v||"",W-lw-4,s,o.b),h=Math.max(o.h||6.5,a.length*lh+2.7);k.ensure(h);
     k.box(L,k.y,lw,h,LAB);k.box(L+lw,k.y,W-lw,h);k.fit(l,L+2,k.y+4.4,lw-3,{s:o.ls||9});doc.setFont("helvetica",o.b?"bold":"normal");doc.setFontSize(s);doc.setTextColor(20,20,20);k.lines(a,L+lw+2,k.y+4.4,lh);k.y+=h};
   k.fit=(t,x,y,maxW,o={})=>{let sz=o.s||9;doc.setFont("helvetica","bold");doc.setFontSize(sz);while(sz>6&&doc.getTextWidth(String(t))>maxW){sz-=0.25;doc.setFontSize(sz)}k.txt(t,x,y,{...o,b:1,s:sz})};
+  /* a heading row, its sub-item rows, and merged value cells on the right (frequency, rate, total…), one set per heading.
+     o: C, head (redraws the table header after a page break), title, rows [{a,n}], unit (column for the units, or null to show them after the text),
+        cells [{col, text, cap, b}] (consecutive columns, last one ends at R), no (number on the heading row), numRows (number the sub-items), hfill */
+  k.group=o=>{const C=o.C,m0=o.cells[0].col;
+    const rows=[{h:1,t:k.split(o.title,C[2]-C[1]-4,9,1)}].concat(o.rows.map((r,i)=>({i:i+1,n:r.n,t:k.split(o.unit==null&&r.n?`${r.a} – ${r.n}`:r.a,(o.unit==null?C[m0]:C[2])-C[1]-7,8.8)})));
+    rows.forEach(r=>r.ht=r.h?Math.max(7,r.t.length*4.3+3):Math.max(6.5,r.t.length*3.9+2.7));
+    k.ensure(rows[0].ht+(rows[1]?rows[1].ht:0));
+    let segY=k.y,first=true;
+    /* the No., description and unit columns have no borders; only the value cells are boxed */
+    const close=()=>{const h=k.y-segY;if(h<=0)return;
+      o.cells.forEach(c=>{const x0=C[c.col],x1=C[c.col+1]||R;k.box(x0,segY,x1-x0,h);
+        if(first&&c.text){const cx=(x0+x1)/2,cy=segY+h/2;k.fit(c.text,cx,cy+(c.cap?0.4:1.5),x1-x0-3,{s:c.b?10:9,a:"center"});if(c.cap)k.txt(c.cap,cx,cy+4.3,{a:"center",s:7,c:GR})}});first=false};
+    rows.forEach(r=>{if(k.y+r.ht>BOTTOM){close();doc.addPage();k.decor();k.y=34;o.head();segY=k.y}
+      if(r.h){if(o.hfill){doc.setFillColor(...o.hfill);doc.rect(C[0],k.y,C[m0]-C[0],r.ht,"F")}if(o.no!=null)k.txt(String(o.no),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});
+        doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(r.t,C[1]+2,k.y+4.8)}
+      else{if(o.numRows)k.txt(String(r.i),(C[0]+C[1])/2,k.y+4.5,{a:"center",s:8.8,c:GR});
+        doc.setFont("helvetica","normal");doc.setFontSize(8.8);doc.setTextColor(20,20,20);doc.text(r.t,C[1]+5,k.y+4.5);
+        if(o.unit!=null&&r.n)k.txt(r.n,(C[o.unit]+C[o.unit+1])/2,k.y+4.5,{a:"center",s:8.8})}
+      k.y+=r.ht});
+    close()};
+  /* item tables: No. + description share one outer border and the unit column has its own; no inner lines.
+     xs: right edge of each bordered area, left to right */
+  k.openArea=(...xs)=>{k._oa={y:k.y,xs}};
+  k.closeArea=()=>{const a=k._oa;k._oa=null;if(!a||k.y<=a.y)return;let x0=L;a.xs.forEach(x=>{k.box(x0,a.y,x-x0,k.y-a.y);x0=x})};
+  {const add=doc.addPage.bind(doc);doc.addPage=(...a)=>{k.closeArea();return add(...a)}}
   k.decor();return k;
 }
 
@@ -1024,11 +1055,24 @@ const autoTitle=x=>x.custom?(x.desc.trim()||"Custom item"):`${SVC_T[SVCS.indexOf
 function resetAuto(x){const lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));x.rate=lp==null?"":String(lp);x.rateEdited=false;x.desc=autoTitle(x);x.descEdited=false}
 function fixSvc(x){if(x.svc==="Deep cleaning (AMC)"&&listPrice(x.p,x.s,2)==null)x.svc="Deep cleaning"}
 function newCustom(){return {custom:true,p:"",s:"",svc:"",visits:1,rate:"",rateEdited:true,desc:"",descEdited:true}}
+/* a heading (e.g. Office cleaning) with any number of sub-items (Office rooms 5, Meeting rooms 2…) and one price for the lot */
+function newGroup(){return {...newCustom(),group:true,rows:[{a:"",n:""},{a:"",n:""}]}}
+const groupRows=x=>(x.rows||[]).map(r=>({a:String(r.a||"").trim(),n:String(r.n||"").trim()})).filter(r=>r.a||r.n);
+function rowsEditor(box,x,onChange){box.hidden=!x.group;if(!x.group){box.innerHTML="";return}box.classList.add("subrows");
+  box.innerHTML=`<span class="lbl">Sub-items</span><div class="sr-h"><span>Area / item</span><span>No. of units</span><span></span></div>`+x.rows.map((r,i)=>`<div class="sr-row"><input type="text" data-ra="${i}" value="${esc(r.a)}" placeholder="e.g. Office rooms" aria-label="Sub-item ${i+1}"><input type="text" data-rn="${i}" value="${esc(r.n)}" inputmode="numeric" placeholder="e.g. 5" aria-label="Units for sub-item ${i+1}"><button type="button" class="linkbtn" data-rx="${i}" aria-label="Remove sub-item ${i+1}">✕</button></div>`).join("")+`<button class="btn" type="button" data-radd>+ Add sub-item</button>`;
+  box.oninput=e=>{const a=e.target.dataset.ra,n=e.target.dataset.rn;if(a!=null)x.rows[+a].a=e.target.value;else if(n!=null)x.rows[+n].n=e.target.value;else return;onChange()};
+  box.onclick=e=>{if(e.target.closest("[data-radd]")){x.rows.push({a:"",n:""});rowsEditor(box,x,onChange);box.querySelector(`[data-ra="${x.rows.length-1}"]`).focus();onChange();return}
+    const r=e.target.closest("[data-rx]");if(r){x.rows.splice(+r.dataset.rx,1);rowsEditor(box,x,onChange);onChange()}}}
+/* picker labels for preset / custom / heading items (quotation and contract) */
+function pickerMode(px,x,word,visits){const G=!!x.group;$(px+"-vw").hidden=G&&!visits;$(px+"-rate-l").textContent=G?"Total price for all sub-items (AED)":"Price per visit (AED)";
+  $(px+"-desc-l").textContent=G?"Heading (e.g. Office cleaning)":x.custom?"Item / service description":`Description (shown on the ${word})`;$(px+"-desc").placeholder=G?"e.g. Glass cleaning":x.custom?"e.g. Balcony glass cleaning":""}
+const kindOf=x=>x.group?"heading":"custom";
+const subTxt=l=>`${l.rows.length} sub-item${l.rows.length===1?"":"s"}`+(l.visits>1?` · AED ${fmt(l.unit)} × ${l.visits}`:", one price");
 function newItem(from){const x={p:"Apartment",s:"2 BHK",svc:"Deep cleaning",visits:1};if(from&&!from.custom){x.p=from.p;x.s=from.s;x.svc=from.svc}resetAuto(x);return x}
 let qItems=[newItem()],cur=0;const it=()=>qItems[cur];
 function renderPicker(){const x=it();
-  $("q-presets").hidden=!!x.custom;$("q-desc").placeholder=x.custom?"e.g. Balcony glass cleaning":"";$("q-desc-l").textContent=x.custom?"Item / service description":"Description (shown on the quote)";
-  if(x.custom){$("v-out").textContent=x.visits;$("q-rate").value=x.rate;$("q-desc").value=x.desc;rateNote();$("q-edit-h").textContent=qItems.length>1?`Editing item ${cur+1} of ${qItems.length} (custom)`:"Custom item";$("q-edit-h").hidden=false;return}
+  $("q-presets").hidden=!!x.custom;pickerMode("q",x,"quote");rowsEditor($("q-rows"),x,()=>{qEdited=false;renderQItems();calc()});
+  if(x.custom){$("v-out").textContent=x.visits;$("q-rate").value=x.rate;$("q-desc").value=x.desc;rateNote();$("q-edit-h").textContent=qItems.length>1?`Editing item ${cur+1} of ${qItems.length} (${kindOf(x)})`:x.group?"Heading with sub-items":"Custom item";$("q-edit-h").hidden=false;return}
   chips($("q-prop"),"prop",Object.keys(PRICES),x.p,()=>{x.p=val("prop");const sz=Object.keys(PRICES[x.p]);if(!sz.includes(x.s))x.s=sz[x.p==="Apartment"?2:0];fixSvc(x);resetAuto(x);renderPicker();quoteChanged()});
   chips($("q-size"),"size",Object.keys(PRICES[x.p]),x.s,()=>{x.s=val("size");fixSvc(x);resetAuto(x);renderPicker();quoteChanged()});
   chips($("q-svc"),"svc",SVCS,x.svc,()=>{x.svc=val("svc");resetAuto(x);renderPicker();quoteChanged()});
@@ -1036,8 +1080,8 @@ function renderPicker(){const x=it();
   $("v-out").textContent=x.visits;$("q-rate").value=x.rate;$("q-desc").value=x.desc;rateNote();
   $("q-edit-h").textContent=qItems.length>1?`Editing service ${cur+1} of ${qItems.length}`:"";$("q-edit-h").hidden=qItems.length<2;
 }
-function rateNote(){if(it().custom){$("q-ratenote").textContent="Enter the price per visit or per unit";return}const x=it(),lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));$("q-ratenote").innerHTML=x.rateEdited&&num(x.rate)!==lp?`Price list: AED ${fmt(lp)} · <button type="button" class="linkbtn" id="q-ratereset">Reset</button>`:"Tap the price to change it"}
-function lineOf(x){const idx=SVCS.indexOf(x.svc),unit=num(x.rate);return {...x,idx,unit,sub:r2(unit*x.visits),title:x.desc.trim()||autoTitle(x),short:x.descEdited&&x.desc.trim()?x.desc.trim():`${x.s} ${x.p}, ${x.svc.toLowerCase()}`,amc:listPrice(x.p,x.s,2),deep:listPrice(x.p,x.s,1)}}
+function rateNote(){if(it().custom){$("q-ratenote").textContent=it().group?"One price for the heading and all its sub-items":"Enter the price per visit or per unit";return}const x=it(),lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));$("q-ratenote").innerHTML=x.rateEdited&&num(x.rate)!==lp?`Price list: AED ${fmt(lp)} · <button type="button" class="linkbtn" id="q-ratereset">Reset</button>`:"Tap the price to change it"}
+function lineOf(x){const idx=SVCS.indexOf(x.svc),unit=num(x.rate);if(x.group){const t=x.desc.trim()||"Cleaning services",v=x.visits||1;return {...x,visits:v,idx,unit,sub:r2(unit*v),rows:groupRows(x),title:t,short:t}}return {...x,idx,unit,sub:r2(unit*x.visits),title:x.desc.trim()||autoTitle(x),short:x.descEdited&&x.desc.trim()?x.desc.trim():`${x.s} ${x.p}, ${x.svc.toLowerCase()}`,amc:listPrice(x.p,x.s,2),deep:listPrice(x.p,x.s,1)}}
 function quote(){
   const lines=qItems.map(lineOf),n=lines.length,sub=r2(lines.reduce((s,l)=>s+l.sub,0));
   const disc=Math.min(Math.max(num($("q-disc").value),0),100),discAmt=r2(sub*disc/100),net=r2(sub-discAmt);
@@ -1060,13 +1104,13 @@ function defaultScope(q){
 const DEFAULT_TERMS=["Payment: 50% advance on confirmation of the order, balance 50% on completion of the works.","Validity: This quotation is valid for 15 days from the date of issue.","Power, water and access to the property to be provided by the client free of charge.","Any work outside the above scope will be quoted separately.","VAT is charged at 5% in accordance with UAE VAT law."].join("\n");
 let scopeEdited=false;
 function renderQItems(){const box=$("q-items");if(qItems.length<2){box.innerHTML="";box.hidden=true;return}box.hidden=false;
-  box.innerHTML=`<span class="lbl">Items in this quote <span style="font-weight:500">· tap one to change it</span></span>`+qItems.map((x,i)=>{const l=lineOf(x);return `<div class="qi${i===cur?" on":""}"><button type="button" class="qi-main" data-qsel="${i}" aria-pressed="${i===cur}"><b>${i+1}. ${esc(l.title)}</b><span>AED ${fmt(l.unit)} × ${x.visits} visit${x.visits>1?"s":""} = AED ${fmt(l.sub)}</span></button><button type="button" class="linkbtn" data-qrm="${i}" aria-label="Remove service ${i+1}">Remove</button></div>`}).join("")}
+  box.innerHTML=`<span class="lbl">Items in this quote <span style="font-weight:500">· tap one to change it</span></span>`+qItems.map((x,i)=>{const l=lineOf(x);return `<div class="qi${i===cur?" on":""}"><button type="button" class="qi-main" data-qsel="${i}" aria-pressed="${i===cur}"><b>${i+1}. ${esc(l.title)}</b><span>${l.group?subTxt(l):`AED ${fmt(l.unit)} × ${x.visits} visit${x.visits>1?"s":""}`} = AED ${fmt(l.sub)}</span></button><button type="button" class="linkbtn" data-qrm="${i}" aria-label="Remove service ${i+1}">Remove</button></div>`}).join("")}
 function quoteChanged(){qEdited=false;if(!scopeEdited)$("qp-scope").value=defaultScope(quote());renderQItems();calc()}
 function calc(){
   const q=quote(),n=q.n,one=q.lines[0];
   $("t-title").textContent=n===1?(one.custom?one.title:one.descEdited&&one.desc.trim()?one.desc.trim():`${one.p} ${one.s}, ${one.svc.toLowerCase()}`):`${n} items`;
   $("t-num").innerHTML=`<small>AED</small>${fmt(q.total)}`;
-  let L=q.lines.map(l=>`<div class="line"><span>${n>1?esc(l.short)+": ":""}${fmt(l.unit)} × ${l.visits} visit${l.visits>1?"s":""}</span><b>${fmt(l.sub)}</b></div>`).join("");
+  let L=q.lines.map(l=>`<div class="line"><span>${n>1||l.group?esc(l.short)+": ":""}${l.group?subTxt(l):`${fmt(l.unit)} × ${l.visits} visit${l.visits>1?"s":""}`}</span><b>${fmt(l.sub)}</b></div>`).join("");
   if(n>1)L+=`<div class="line"><span>Subtotal</span><b>${fmt(q.sub)}</b></div>`;
   if(q.disc>0)L+=`<div class="line"><span>Discount ${fmt(q.disc)}%</span><b>−${fmt(q.discAmt)}</b></div>`;
   if(q.vatOn)L+=`<div class="line"><span>VAT 5%</span><b>${fmt(q.vat)}</b></div>`;
@@ -1075,8 +1119,10 @@ function calc(){
   $("t-save").textContent=tips.join(" ");
   const name=$("q-name").value.trim();
   const lines=[name?`Hi ${name},`:"Hello,","","Thank you for contacting Xtreme Facilities Management. Here is your quotation:",""];
-  if(n===1){if(one.custom||(one.descEdited&&one.desc.trim()))lines.push(`Service: ${one.title}`);else lines.push(`Service: ${one.svc}`,`Property: ${one.p}, ${one.s}`);lines.push(`Price per visit: AED ${fmt(one.unit)}`,`Visits: ${one.visits}`,`Subtotal: AED ${fmt(q.sub)}`)}
-  else{q.lines.forEach((l,i)=>lines.push(`${i+1}. ${l.title}`,`   AED ${fmt(l.unit)} × ${l.visits} visit${l.visits>1?"s":""} = AED ${fmt(l.sub)}`));lines.push("",`Subtotal: AED ${fmt(q.sub)}`)}
+  const rowsTxt=l=>l.rows.map(r=>`   • ${r.a}${r.n?`: ${r.n}`:""}`);
+  if(n===1&&one.group)lines.push(one.title,...rowsTxt(one),`Price: AED ${fmt(q.sub)}`);
+  else if(n===1){if(one.custom||(one.descEdited&&one.desc.trim()))lines.push(`Service: ${one.title}`);else lines.push(`Service: ${one.svc}`,`Property: ${one.p}, ${one.s}`);lines.push(`Price per visit: AED ${fmt(one.unit)}`,`Visits: ${one.visits}`,`Subtotal: AED ${fmt(q.sub)}`)}
+  else{q.lines.forEach((l,i)=>{if(l.group)lines.push(`${i+1}. ${l.title}`,...rowsTxt(l),`   Price: AED ${fmt(l.sub)}`);else lines.push(`${i+1}. ${l.title}`,`   AED ${fmt(l.unit)} × ${l.visits} visit${l.visits>1?"s":""} = AED ${fmt(l.sub)}`)});lines.push("",`Subtotal: AED ${fmt(q.sub)}`)}
   if(q.disc>0)lines.push(`Discount (${fmt(q.disc)}%): −AED ${fmt(q.discAmt)}`);if(q.vatOn)lines.push(`VAT 5%: AED ${fmt(q.vat)}`);lines.push(`Total: AED ${fmt(q.total)}`);
   const deepTips=q.lines.filter(l=>l.idx===1&&l.amc!=null&&!l.rateEdited);
   if(n===1&&deepTips.length)lines.push("",`Tip: with our annual maintenance contract (AMC), this deep clean is only AED ${fmt(one.amc)} per visit.`);
@@ -1089,12 +1135,13 @@ function calc(){
 $("v-minus").onclick=()=>{it().visits=Math.max(1,it().visits-1);$("v-out").textContent=it().visits;qEdited=false;renderQItems();calc()};
 $("v-plus").onclick=()=>{it().visits=Math.min(365,it().visits+1);$("v-out").textContent=it().visits;qEdited=false;renderQItems();calc()};
 $("q-rate").addEventListener("input",()=>{const x=it();x.rate=$("q-rate").value.replace(/[^\d.,]/g,"");x.rateEdited=true;rateNote();qEdited=false;renderQItems();calc()});
-$("q-desc").addEventListener("input",()=>{const x=it();x.desc=$("q-desc").value;x.descEdited=true;if(x.custom)$("q-edit-h").textContent=qItems.length>1?`Editing item ${cur+1} of ${qItems.length} (custom)`:"Custom item";qEdited=false;if(!scopeEdited)$("qp-scope").value=defaultScope(quote());renderQItems();calc()});
+$("q-desc").addEventListener("input",()=>{const x=it();x.desc=$("q-desc").value;x.descEdited=true;if(x.custom)$("q-edit-h").textContent=qItems.length>1?`Editing item ${cur+1} of ${qItems.length} (${kindOf(x)})`:x.group?"Heading with sub-items":"Custom item";qEdited=false;if(!scopeEdited)$("qp-scope").value=defaultScope(quote());renderQItems();calc()});
 document.addEventListener("click",e=>{
   if(e.target.id==="q-ratereset"){const x=it(),lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));x.rate=lp==null?"":String(lp);x.rateEdited=false;$("q-rate").value=x.rate;rateNote();quoteChanged();return}
   const s=e.target.closest("[data-qsel]");if(s){cur=+s.dataset.qsel;renderPicker();renderQItems();$("q-prop").scrollIntoView({behavior:"smooth",block:"center"});return}
   const r=e.target.closest("[data-qrm]");if(r){const i=+r.dataset.qrm;qItems.splice(i,1);if(cur>=i&&cur>0)cur--;renderPicker();quoteChanged();toast("Service removed")}
 });
+$("q-addg").onclick=()=>{qItems.push(newGroup());cur=qItems.length-1;renderPicker();quoteChanged();toast("Type the heading, its sub-items and one price for all of them.");$("q-desc").focus()};
 $("q-addc").onclick=()=>{qItems.push(newCustom());cur=qItems.length-1;renderPicker();quoteChanged();toast("Custom item added. Type the description and price.");$("q-desc").focus()};
 $("q-add").onclick=()=>{qItems.push(newItem(it()));cur=qItems.length-1;renderPicker();quoteChanged();toast(`Service ${cur+1} added. Choose its details above.`);$("q-edit-h").scrollIntoView({behavior:"smooth",block:"start"})};
 ["q-disc","q-name"].forEach(id=>$(id).addEventListener("input",()=>{qEdited=false;calc()}));
@@ -1118,21 +1165,24 @@ function buildQuotePdf(){
   const greet=`Dear ${g("q-name")||"Sir/Madam"},`;k.txt(greet,L,k.y,{s:9.5});k.y+=5.5;
   k.txt("Thank you for your enquiry. We are pleased to submit our commercial offer for your review as follows:",L,k.y,{s:9.5,mw:W});k.y+=7;
   k.band(L,k.y,W,6,"COMMERCIAL OFFER");k.y+=6;
-  const multi=q.n>1;
-  const C=multi?[L,L+10,L+106,L+126,L+156,R]:[L,L+106,L+126,L+156,R];
-  const head=()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");
+  const blocks=q.lines.some(l=>l.group),multi=q.n>1||blocks;
+  const C=blocks?[L,L+10,L+98,L+143,R]:multi?[L,L+10,L+106,L+126,L+156,R]:[L,L+106,L+126,L+156,R];
+  const head=blocks?()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");[["No.",0,"center"],["Area",1,"left"],["No. of Units",2,"center"],["Price (AED)",3,"center"]].forEach(([t,i,a])=>k.txt(t,a==="left"?C[i]+2:(C[i]+C[i+1])/2,k.y+4.7,{b:1,s:8.5,a}));for(let i=0;i<4;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7;k.openArea(C[2],C[3])}:()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");
     const hs=multi?[["No.",0,"center"],["Service",1,"left"],["Visits",2,"center"],["Per Visit (AED)",3,"right"],["Total (AED)",4,"right"]]:[["Service",0,"left"],["Visits",1,"center"],["Per Visit (AED)",2,"right"],["Total (AED)",3,"right"]];
     hs.forEach(([t,i,a])=>{const x=a==="left"?C[i]+2:a==="center"?(C[i]+C[i+1])/2:C[i+1]-2;k.txt(t,x,k.y+4.7,{b:1,s:8.5,a})});
-    for(let i=0;i<C.length-1;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7};
+    for(let i=0;i<C.length-1;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7;k.openArea(multi?C[2]:C[1])};
   head();
   const scope=g("qp-scope").split("\n").map(s=>s.trim()).filter(Boolean);
   const scopeLines=[];scope.forEach(s=>{if(multi&&/:$/.test(s)){scopeLines.push({h:1,t:s});return}const w=multi?W-7:C[1]-C[0]-7;k.split("•  "+s,w,8.3).forEach((l,j)=>scopeLines.push({t:j?"    "+l:l}))});
-  if(!multi){
+  if(blocks){
+    /* layout of the sample quotation: heading row, numbered areas with units, one price for the block */
+    q.lines.forEach(l=>k.group({C,head,title:l.title,rows:l.group?l.rows:[{a:`Visits (AED ${money(l.unit)} per visit)`,n:String(l.visits)}],unit:2,cells:[{col:3,text:money(l.sub),cap:q.vatOn?"excl. VAT":"",b:1}],numRows:true,hfill:CREAM}));
+  }else if(!multi){
     const l=q.lines[0],titleLines=k.split(l.title,C[1]-C[0]-4,9,1);
     const body=[{t:titleLines,h:titleLines.length*4.3}];if(scopeLines.length){body.push({lab:1,h:5.5});scopeLines.forEach(x=>body.push({t:[x.t],h:3.8,s:1}))}
     let first=true;k.ensure(Math.min(4+body.slice(0,4).reduce((a,b)=>a+b.h,0)+2,120));
     while(body.length){let n=0,hh=4;while(n<body.length&&(n===0||k.y+hh+body[n].h+2<=272)){hh+=body[n].h;n++}const rowH=hh+2,part=body.splice(0,n);
-      for(let i=0;i<4;i++)k.box(C[i],k.y,C[i+1]-C[i],rowH);
+      for(let i=1;i<4;i++)k.box(C[i],k.y,C[i+1]-C[i],rowH);
       let yy=k.y+5;part.forEach(b=>{if(b.lab){k.txt("Scope of work:",C[0]+2,yy+1.5,{b:1,s:8.3,c:GR});yy+=5.5;return}
         if(b.s){doc.setFont("helvetica","normal");doc.setFontSize(8.3);doc.setTextColor(40,40,40);doc.text(b.t,C[0]+3,yy);yy+=3.8}else{doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(b.t,C[0]+2,yy);yy+=b.h}});
       if(first){k.txt(String(l.visits),(C[1]+C[2])/2,k.y+5,{a:"center",s:9});k.txt(money(l.unit),C[3]-2,k.y+5,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+5,{a:"right",s:9,b:1})}
@@ -1140,11 +1190,12 @@ function buildQuotePdf(){
   }else{
     q.lines.forEach((l,i)=>{const tl=k.split(l.title,C[2]-C[1]-4,9,1),h=Math.max(7,tl.length*4.3+3);
       if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
-      for(let c=0;c<5;c++)k.box(C[c],k.y,C[c+1]-C[c],h);
+      for(let c=2;c<5;c++)k.box(C[c],k.y,C[c+1]-C[c],h);
       k.txt(String(i+1),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(tl,C[1]+2,k.y+4.8);
       k.txt(String(l.visits),(C[2]+C[3])/2,k.y+4.8,{a:"center",s:9});k.txt(money(l.unit),C[4]-2,k.y+4.8,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+4.8,{a:"right",s:9,b:1});k.y+=h});
   }
-  const TC=multi?C[2]:C[1],VC=multi?C[4]:C[3];
+  k.closeArea();
+  const TC=blocks?C[2]:multi?C[2]:C[1],VC=blocks?C[3]:multi?C[4]:C[3];
   const tot=[["Total Excluding VAT",money(q.sub)],["Discount",q.discAmt?"-"+money(q.discAmt):"0.00"]];
   if(q.vatOn)tot.push(["Total VAT @ 5%",money(q.vat)]);
   k.ensure(tot.length*6.5+9);
@@ -1159,7 +1210,8 @@ function buildQuotePdf(){
   if(terms.length){const tl=[];terms.forEach(t=>{k.split("•  "+t,W-6,8.5).forEach((l,j)=>tl.push(j?"    "+l:l))});
     k.ensure(8+tl.length*4.2);k.band(L,k.y,W,6,"TERMS & CONDITIONS");k.y+=10;doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(30,30,30);doc.text(tl,L+2,k.y,{lineHeightFactor:1.35});k.y+=tl.length*4.2+4}
   const close=k.split("We trust the above meets your requirements and look forward to working with you. Should you need any clarification, please do not hesitate to contact us.",W,9);
-  k.ensure(close.length*4.3+46);doc.setTextColor(20,20,20);doc.text(close,L,k.y);k.y+=close.length*4.3+6;
+  /* the signature block may use the space down to the footer band */
+  if(k.y+close.length*4.3+46>280){doc.addPage();k.decor();k.y=34}doc.setTextColor(20,20,20);doc.text(close,L,k.y);k.y+=close.length*4.3+6;
   const hw=W/2-4;k.txt("For Xtreme Facilities Management",L,k.y,{b:1,s:9});k.txt("Accepted by (Client)",L+W/2+4,k.y,{b:1,s:9});k.y+=25;
   if(sealOn("qq")){try{const sw=40;doc.addImage(SIGN,"PNG",L+2,k.y-2-sw*SIGN_R,sw,sw*SIGN_R);const sd=24;doc.addImage(STAMP,"PNG",L+50,k.y-sd*STAMP_R+1.5,sd,sd*STAMP_R)}catch(e){}}
   doc.setDrawColor(...LINE);doc.line(L,k.y,L+hw,k.y);doc.line(L+W/2+4,k.y,R,k.y);k.y+=4.5;
@@ -1169,7 +1221,7 @@ function buildQuotePdf(){
 let qPanel=null;
 renderPicker();$("qp-scope").value=defaultScope(quote());
 qPanel=sendPanel("qq",{mount:"q-send",kind:"Quotations",date:()=>$("qp-date").value,docType:"quote",
-  snap:()=>{const q=quote(),g=id=>$(id).value.trim();return {ref:g("qp-ref"),date:g("qp-date"),client:g("qp-co")||g("q-name"),name:g("q-name"),co:g("qp-co"),phone:g("q-phone"),email:g("qp-email"),loc:g("qp-loc"),items:q.lines.map(l=>({title:l.title,visits:l.visits,unit:l.unit,sub:l.sub})),disc:q.disc,discAmt:q.discAmt,vatOn:q.vatOn,sub:q.sub,vat:q.vat,total:q.total}},
+  snap:()=>{const q=quote(),g=id=>$(id).value.trim();return {ref:g("qp-ref"),date:g("qp-date"),client:g("qp-co")||g("q-name"),name:g("q-name"),co:g("qp-co"),phone:g("q-phone"),email:g("qp-email"),loc:g("qp-loc"),items:q.lines.map(l=>({title:l.title,visits:l.visits,unit:l.unit,sub:l.sub,...(l.group?{group:true,rows:l.rows}:{})})),disc:q.disc,discAmt:q.discAmt,vatOn:q.vatOn,sub:q.sub,vat:q.vat,total:q.total}},
   to:()=>$("qp-email").value.trim(),
   subject:()=>{const q=quote();return `Quotation ${$("qp-ref").value.trim()} - ${q.title}`},
   body:()=>{const q=quote();const n=$("q-name").value.trim();const what=q.n===1?q.title:q.lines.map(l=>l.title).join(", ");return `Dear ${n||"Sir/Madam"},\n\nThank you for your enquiry. Please find attached our quotation ${$("qp-ref").value.trim()} for ${what}, for a total of AED ${money(q.total)}${q.vatOn?" (including 5% VAT)":""}.\n\nThe quotation is valid for 15 days. Just reply to this email to confirm, and we'll schedule your team.`},
@@ -1180,6 +1232,12 @@ renderQItems();calc();
 let items=[{d:"",u:"",f:"1",r:""}];
 const lineTotal=it=>it.r===""?0:r2(num(it.r)*(it.f===""?1:num(it.f)));
 function renderItems(){const box=$("i-items");box.innerHTML="";items.forEach((it,i)=>{const d=document.createElement("div");d.className="item";
+  if(it.g){d.innerHTML=`<div class="item-h"><b>Item ${i+1} · heading with sub-items</b><button type="button" class="linkbtn" data-rm="${i}" aria-label="Remove item ${i+1}">Remove</button></div>
+    <input type="text" data-k="d" data-i="${i}" placeholder="Heading, e.g. Office cleaning" value="${esc(it.d)}">
+    <div class="field" data-rows="${i}" style="margin-top:12px"></div>
+    <div class="row2"><div><label class="lbl">Frequency</label><input type="text" inputmode="decimal" data-k="f" data-i="${i}" value="${esc(it.f)}"></div>
+    <div><label class="lbl">Rate per visit, all sub-items (AED)</label><input type="text" inputmode="decimal" data-k="r" data-i="${i}" value="${esc(it.r)}"></div></div>
+    <div class="item-t">Total <b data-t="${i}">AED ${money(lineTotal(it))}</b></div>`;box.appendChild(d);rowsEditor(d.querySelector("[data-rows]"),{group:true,get rows(){return it.rows}},invCalc);return}
   d.innerHTML=`<div class="item-h"><b>Item ${i+1}</b><button type="button" class="linkbtn" data-rm="${i}" aria-label="Remove item ${i+1}">Remove</button></div>
   <input type="text" data-k="d" data-i="${i}" placeholder="Item & description, e.g. Deep Cleaning of 2 BHK Apartment" value="${esc(it.d)}">
   <div class="row3"><div><label class="lbl">Unit</label><input type="text" data-k="u" data-i="${i}" placeholder="e.g. 603" value="${esc(it.u)}"></div>
@@ -1189,6 +1247,8 @@ function renderItems(){const box=$("i-items");box.innerHTML="";items.forEach((it
 $("i-items").addEventListener("input",e=>{const k=e.target.dataset.k;if(!k)return;const i=+e.target.dataset.i;items[i][k]=e.target.value;const t=document.querySelector(`[data-t="${i}"]`);if(t)t.textContent="AED "+money(lineTotal(items[i]));invCalc()});
 $("i-items").addEventListener("click",e=>{const b=e.target.closest("[data-rm]");if(!b)return;items.splice(+b.dataset.rm,1);if(!items.length)items.push({d:"",u:"",f:"1",r:""});renderItems();invCalc()});
 $("i-add").onclick=()=>{items.push({d:"",u:"",f:"1",r:""});renderItems();invCalc()};
+const blankInv=()=>items.length===1&&!items[0].d&&!items[0].r&&!items[0].g;
+$("i-addg").onclick=()=>{const g={g:true,d:"",u:"",f:"1",r:"",rows:[{a:"",n:""},{a:"",n:""}]};if(blankInv())items[0]=g;else items.push(g);renderItems();invCalc();const ins=$("i-items").querySelectorAll('[data-k="d"]');ins[ins.length-1].focus()};
 function addPriced(prop,size,idx){const r=PRICES[prop][size][idx];if(r==null)return;const it={d:`${SVC_T[idx]} of ${size} ${prop}`,u:"",f:"1",r:String(r)};if(items.length===1&&!items[0].d&&!items[0].r)items[0]=it;else items.push(it);renderItems();invCalc()}
 function fillSel(sel,opts){sel.innerHTML=opts.map(o=>`<option>${esc(o)}</option>`).join("")}
 let pkIdx=[];
@@ -1207,18 +1267,21 @@ function buildInvoicePdf(){
   const from=$("ii-from").value,k=pdfKit(invName().toUpperCase(),from),{doc,L,R,W}=k;const g=id=>$(id).value.trim();
   k.pair("Invoice Date",dfmt(g("i-date")),`${invName()} No.`,g("i-no"));k.pair("Terms",g("i-terms"),"Project",g("i-proj"));k.pair("Due Date",dfmt(g("i-due")),"Client's P.O. No.",g("i-po"));
   k.y+=4;k.band(L,k.y,W,6,"BILL TO");k.y+=6;
-  [["Client / Company",g("i-client")],["Address",g("i-addr")],["Tel / Fax",g("i-tel")],["Email",g("i-email")],["Client TRN",g("i-trn")]].forEach(([l,v])=>k.row(l,v));
+  [["Client / Company",g("i-client")],["Address",g("i-addr")],["Tel / Fax",g("i-tel")],["Email",g("i-email")],["Client TRN",g("i-trn")]].forEach(([l,v],j)=>{if(v||!j)k.row(l,v)});
   k.y+=4;const C=[L,L+10,L+92,L+112,L+132,L+158,R];
-  const head=()=>{doc.setFillColor(...BLACK);doc.rect(L,k.y,W,9,"F");[["No.",0,"center"],["Item & Description",1,"left"],["Unit",2,"center"],["Frequency",3,"center"],["Per Visit Rate (AED)",4,"center"],["Total Amount (AED)",5,"center"]].forEach(([t,i,a])=>{const x=a==="center"?(C[i]+C[i+1])/2:C[i]+2;const ls=k.split(t,C[i+1]-C[i]-2,8,1);doc.setTextColor(255,255,255);doc.text(ls,x,k.y+(ls.length>1?3.6:5.6),{align:a})});k.y+=9};
+  const head=()=>{doc.setFillColor(...BLACK);doc.rect(L,k.y,W,9,"F");[["No.",0,"center"],["Item & Description",1,"left"],["Unit",2,"center"],["Frequency",3,"center"],["Per Visit Rate (AED)",4,"center"],["Total Amount (AED)",5,"center"]].forEach(([t,i,a])=>{const x=a==="center"?(C[i]+C[i+1])/2:C[i]+2;const ls=k.split(t,C[i+1]-C[i]-2,8,1);doc.setTextColor(255,255,255);doc.text(ls,x,k.y+(ls.length>1?3.6:5.6),{align:a})});k.y+=9;k.openArea(C[2],C[3])};
   head();if(g("i-cov")){const cv=k.split(g("i-cov"),W-24,8.5,1),ch=Math.max(6.5,cv.length*3.7+2.8);k.box(L,k.y,20,ch,LAB);k.box(L+20,k.y,W-20,ch);k.txt("Coverage",L+2,k.y+4.4,{b:1,s:8.5});doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(20,20,20);k.lines(cv,L+22,k.y+4.4,3.7);k.y+=ch}
-  const filled=items.filter(it=>it.d||it.r);const rows=Math.max(filled.length,5);let n=0;
-  for(let j=0;j<rows;j++){const it=filled[j];const dl2=it?k.split(it.d,C[2]-C[1]-3):[];const h=Math.max(6.5,dl2.length*3.8+2.7);
-    if(it&&k.y+h>272){doc.addPage();k.decor();k.y=34;head()}else if(!it&&k.y+h>200)break;
-    for(let c=0;c<6;c++)k.box(C[c],k.y,C[c+1]-C[c],h);
+  const filled=items.filter(it=>it.d||it.r);const rows=filled.length;let n=0;
+  for(let j=0;j<rows;j++){const it=filled[j];
+    if(it&&it.g){n++;k.group({C,head,no:n,title:it.d||"Services",rows:groupRows(it),unit:2,cells:[{col:3,text:it.f===""?"1":it.f},{col:4,text:it.r!==""?money(num(it.r)):""},{col:5,text:it.r!==""?money(lineTotal(it)):"",b:1}]});continue}
+    const dl2=it?k.split(it.d,C[2]-C[1]-3):[];const h=Math.max(6.5,dl2.length*3.8+2.7);
+    if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
+    for(let c=3;c<6;c++)k.box(C[c],k.y,C[c+1]-C[c],h);
     if(it){n++;k.txt(n,(C[0]+C[1])/2,k.y+4.4,{a:"center",s:8.5,c:GR});doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(20,20,20);doc.text(dl2,C[1]+1.5,k.y+4.4);
       k.txt(it.u,(C[2]+C[3])/2,k.y+4.4,{a:"center",s:8.5});k.txt(it.f===""?"1":it.f,(C[3]+C[4])/2,k.y+4.4,{a:"center",s:8.5});
       if(it.r!=="")k.txt(money(num(it.r)),C[5]-2,k.y+4.4,{a:"right",s:8.5});k.txt(it.r!==""?money(lineTotal(it)):"",R-2,k.y+4.4,{a:"right",s:8.5,b:1})}
     k.y+=h}
+  k.closeArea();
   const {net,vatOn,vat,total}=inv();
   const WC=C[2],wl=k.split(amountWords(total),WC-L-4,8.5,1),wb=Math.max(15.5,wl.length*4+5),bh=6.5+wb;
   if(k.y+bh>272){doc.addPage();k.decor();k.y=34}
@@ -1256,15 +1319,16 @@ function defEnd(){const st=$("c-start").value||todayISO();const d=new Date(st+"T
 let endEdited=false;
 function periods(){if(ctTerm!=="Fixed")return null;const a=$("c-start").value,b=$("c-end").value;if(!a||!b)return null;const days=(new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/864e5+1;if(days<=0)return null;return Math.max(1,Math.round(ctType==="Weekly"?days/7:ctType==="Monthly"?days/30.44:days/365.25))}
 function cRenderType(){chips($("c-type"),"ctype",Object.keys(PER),ctType,()=>{ctType=val("ctype");cRenderType();cChanged()});chips($("c-term"),"cterm",["Fixed","Open"],ctTerm,()=>{ctTerm=val("cterm");cRenderType();cChanged()});$("c-endw").hidden=ctTerm!=="Fixed";$("cv-l").textContent=`Visits per ${PER[ctType]}`}
-function cRenderPicker(){const x=ci();$("c-presets").hidden=!!x.custom;$("c-desc-l").textContent=x.custom?"Item / service description":"Description (shown on the contract)";$("c-desc").placeholder=x.custom?"e.g. Monthly pest control":"";
+function cRenderPicker(){const x=ci();$("c-presets").hidden=!!x.custom;pickerMode("c",x,"contract",true);if(x.custom&&!x.group)$("c-desc").placeholder="e.g. Monthly pest control";
+  $("c-rate-l").textContent=x.group?"Price per visit, all sub-items (AED)":"Price per visit (AED)";rowsEditor($("c-rows"),x,()=>{cRenderItems();cCalc()});
   if(!x.custom){
     chips($("c-prop"),"cprop",Object.keys(PRICES),x.p,()=>{x.p=val("cprop");const sz=Object.keys(PRICES[x.p]);if(!sz.includes(x.s))x.s=sz[x.p==="Apartment"?2:0];fixSvc(x);resetAuto(x);cRenderPicker();cChanged()});
     chips($("c-size"),"csize",Object.keys(PRICES[x.p]),x.s,()=>{x.s=val("csize");fixSvc(x);resetAuto(x);cRenderPicker();cChanged()});
     chips($("c-svc"),"csvc",SVCS,x.svc,()=>{x.svc=val("csvc");resetAuto(x);cRenderPicker();cChanged()});
     document.querySelector('input[name="csvc"][value="Deep cleaning (AMC)"]').disabled=listPrice(x.p,x.s,2)==null}
   $("cv-out").textContent=x.visits;$("c-rate").value=x.rate;$("c-desc").value=x.desc;cRateNote();
-  $("c-edit-h").hidden=cItems.length<2&&!x.custom;$("c-edit-h").textContent=cItems.length>1?`Editing item ${cc+1} of ${cItems.length}${x.custom?" (custom)":""}`:"Custom item"}
-function cRateNote(){const x=ci();if(x.custom){$("c-ratenote").textContent="Enter the price per visit";return}const lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));$("c-ratenote").innerHTML=x.rateEdited&&num(x.rate)!==lp?`Price list: AED ${fmt(lp)} · <button type="button" class="linkbtn" id="c-ratereset">Reset</button>`:"Tap the price to change it"}
+  $("c-edit-h").hidden=cItems.length<2&&!x.custom;$("c-edit-h").textContent=cItems.length>1?`Editing item ${cc+1} of ${cItems.length}${x.custom?` (${kindOf(x)})`:""}`:x.group?"Heading with sub-items":"Custom item"}
+function cRateNote(){const x=ci();if(x.custom){$("c-ratenote").textContent=x.group?"One price per visit for the heading and all its sub-items":"Enter the price per visit";return}const lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));$("c-ratenote").innerHTML=x.rateEdited&&num(x.rate)!==lp?`Price list: AED ${fmt(lp)} · <button type="button" class="linkbtn" id="c-ratereset">Reset</button>`:"Tap the price to change it"}
 function ct(){const lines=cItems.map(lineOf),per=r2(lines.reduce((s,l)=>s+l.sub,0));const disc=Math.min(Math.max(num($("c-disc").value),0),100),discAmt=r2(per*disc/100),net=r2(per-discAmt);const vatOn=$("c-vat").checked,vat=vatOn?r2(net*0.05):0,total=r2(net+vat);const n=periods();return {lines,per,disc,discAmt,net,vatOn,vat,total,n,value:n?r2(total*n):null,valueNet:n?r2(net*n):null}}
 function cDefaultScope(){const groups=[];cItems.map(lineOf).forEach(l=>{if(l.custom)return;const key=l.p+"|"+l.idx;let g=groups.find(x=>x.key===key);if(!g){g={key,head:`${l.p} – ${SVC_T[l.idx]}`,sizes:[],items:scopeOf(l)};groups.push(g)}if(!g.sizes.includes(l.s))g.sizes.push(l.s)});return groups.map(g=>`${g.head} (${g.sizes.join(", ")}):\n`+g.items.join("\n")).join("\n")}
 function cDefaultTerms(){const st=dfmt($("c-start").value),en=dfmt($("c-end").value),per=PER[ctType],t=[];
@@ -1275,12 +1339,12 @@ function cDefaultTerms(){const st=dfmt($("c-start").value),en=dfmt($("c-end").va
     ctTerm==="Fixed"?"Prices are fixed for the contract period.":"Prices may be reviewed with 30 days' written notice.",
     "Any work outside the scope of work will be quoted separately.","Power, water and access to the property to be provided by the client free of charge.","VAT is charged at 5% in accordance with UAE VAT law.");return t.join("\n")}
 function cRenderItems(){const box=$("c-items");if(cItems.length<2){box.innerHTML="";box.hidden=true;return}box.hidden=false;
-  box.innerHTML=`<span class="lbl">Items in this contract <span style="font-weight:500">· tap one to change it</span></span>`+cItems.map((x,i)=>{const l=lineOf(x);return `<div class="qi${i===cc?" on":""}"><button type="button" class="qi-main" data-csel="${i}"><b>${i+1}. ${esc(l.title)}</b><span>AED ${fmt(l.unit)} × ${x.visits} per ${PER[ctType]} = AED ${fmt(l.sub)}</span></button><button type="button" class="linkbtn" data-crm="${i}">Remove</button></div>`}).join("")}
+  box.innerHTML=`<span class="lbl">Items in this contract <span style="font-weight:500">· tap one to change it</span></span>`+cItems.map((x,i)=>{const l=lineOf(x);return `<div class="qi${i===cc?" on":""}"><button type="button" class="qi-main" data-csel="${i}"><b>${i+1}. ${esc(l.title)}</b><span>${l.group?subTxt(l):`AED ${fmt(l.unit)} × ${x.visits}`} per ${PER[ctType]} = AED ${fmt(l.sub)}</span></button><button type="button" class="linkbtn" data-crm="${i}">Remove</button></div>`}).join("")}
 let cPanel=null;
 function cChanged(){if(ctTerm==="Fixed"&&!endEdited)$("c-end").value=defEnd();if(!cScopeEdited)$("c-scope").value=cDefaultScope();if(!cTermsEdited)$("c-terms").value=cDefaultTerms();cRenderItems();cCalc()}
 function cCalc(){const c=ct(),per=PER[ctType];
   $("c-tl").textContent=`Total per ${per}${c.vatOn?" with VAT":""}`;$("c-num").innerHTML=`<small>AED</small>${money(c.total)}`;
-  let L=c.lines.map(l=>`<div class="line"><span>${esc(l.short)}: ${fmt(l.unit)} × ${l.visits}</span><b>${fmt(l.sub)}</b></div>`).join("");
+  let L=c.lines.map(l=>`<div class="line"><span>${esc(l.short)}: ${l.group?subTxt(l):`${fmt(l.unit)} × ${l.visits}`}</span><b>${fmt(l.sub)}</b></div>`).join("");
   if(c.disc>0)L+=`<div class="line"><span>Discount ${fmt(c.disc)}%</span><b>−${fmt(c.discAmt)}</b></div>`;if(c.vatOn)L+=`<div class="line"><span>VAT 5%</span><b>${fmt(c.vat)}</b></div>`;
   $("c-lines").innerHTML=L;$("c-value").textContent=c.n?`Contract value: AED ${money(c.value)} for ${c.n} ${per}${c.n>1?"s":""}`:ctTerm==="Open"?`Open-ended: billed AED ${money(c.total)} per ${per}`:"";
   cPanel&&cPanel.update()}
@@ -1289,6 +1353,7 @@ $("cv-plus").onclick=()=>{ci().visits=Math.min(999,ci().visits+1);$("cv-out").te
 $("c-rate").addEventListener("input",()=>{const x=ci();x.rate=$("c-rate").value.replace(/[^\d.,]/g,"");x.rateEdited=true;cRateNote();cRenderItems();cCalc()});
 $("c-desc").addEventListener("input",()=>{const x=ci();x.desc=$("c-desc").value;x.descEdited=true;cRenderItems();cCalc()});
 $("c-add").onclick=()=>{cItems.push(cNew(ci()));cc=cItems.length-1;cRenderPicker();cChanged();toast("Service added. Choose its details above.")};
+$("c-addg").onclick=()=>{cItems.push({...newGroup(),visits:ctType==="Weekly"?1:ctType==="Monthly"?4:12});cc=cItems.length-1;cRenderPicker();cChanged();toast("Type the heading, its sub-items and one price for all of them.");$("c-desc").focus()};
 $("c-addc").onclick=()=>{cItems.push({custom:true,p:"",s:"",svc:"",visits:1,rate:"",rateEdited:true,desc:"",descEdited:true});cc=cItems.length-1;cRenderPicker();cChanged();$("c-desc").focus()};
 document.addEventListener("click",e=>{if(e.target.id==="c-ratereset"){const x=ci();resetAuto(x);cRenderPicker();cChanged();return}
   const s=e.target.closest("[data-csel]");if(s){cc=+s.dataset.csel;cRenderPicker();cRenderItems();return}
@@ -1308,11 +1373,13 @@ function buildContractPdf(){
   const intro=k.split(`Xtreme Facilities Management is pleased to provide the following ${ctType.toLowerCase()} maintenance services under the terms below.`,W,9.5);doc.setFont("helvetica","normal");doc.setFontSize(9.5);doc.setTextColor(20,20,20);doc.text(intro,L,k.y);k.y+=intro.length*4.5+3;
   k.band(L,k.y,W,6,"SERVICES & PRICING");k.y+=6;
   const C=[L,L+10,L+106,L+130,L+156,R];
-  const head=()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");[["No.",0,"center"],["Service",1,"left"],[`Visits / ${per}`,2,"center"],["Per Visit (AED)",3,"right"],[`Per ${per[0].toUpperCase()+per.slice(1)} (AED)`,4,"right"]].forEach(([t,i,a])=>{const x=a==="left"?C[i]+2:a==="center"?(C[i]+C[i+1])/2:C[i+1]-2;k.txt(t,x,k.y+4.7,{b:1,s:8.3,a})});for(let i=0;i<5;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7};
+  const head=()=>{doc.setFillColor(...CREAM);doc.rect(L,k.y,W,7,"F");[["No.",0,"center"],["Service",1,"left"],[`Visits / ${per}`,2,"center"],["Per Visit (AED)",3,"right"],[`Per ${per[0].toUpperCase()+per.slice(1)} (AED)`,4,"right"]].forEach(([t,i,a])=>{const x=a==="left"?C[i]+2:a==="center"?(C[i]+C[i+1])/2:C[i+1]-2;k.txt(t,x,k.y+4.7,{b:1,s:8.3,a})});for(let i=0;i<5;i++)k.box(C[i],k.y,C[i+1]-C[i],7);k.y+=7;k.openArea(C[2])};
   head();
-  c.lines.forEach((l,i)=>{const tl=k.split(l.title,C[2]-C[1]-4,9,1),h=Math.max(7,tl.length*4.3+3);if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
-    for(let j=0;j<5;j++)k.box(C[j],k.y,C[j+1]-C[j],h);k.txt(String(i+1),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(tl,C[1]+2,k.y+4.8);
+  c.lines.forEach((l,i)=>{if(l.group){k.group({C,head,no:i+1,title:l.title,rows:l.rows,unit:null,cells:[{col:2,text:String(l.visits)},{col:3,text:money(l.unit)},{col:4,text:money(l.sub),b:1}]});return}
+    const tl=k.split(l.title,C[2]-C[1]-4,9,1),h=Math.max(7,tl.length*4.3+3);if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
+    for(let j=2;j<5;j++)k.box(C[j],k.y,C[j+1]-C[j],h);k.txt(String(i+1),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(tl,C[1]+2,k.y+4.8);
     k.txt(String(l.visits),(C[2]+C[3])/2,k.y+4.8,{a:"center",s:9});k.txt(money(l.unit),C[4]-2,k.y+4.8,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+4.8,{a:"right",s:9,b:1});k.y+=h});
+  k.closeArea();
   const TC=L+62,VC=C[4],LW=VC-TC-4;const P=per[0].toUpperCase()+per.slice(1);
   const tot=[[`Total per ${P} excl. VAT`,money(c.per)],["Discount",c.discAmt?"-"+money(c.discAmt):"0.00"]];if(c.vatOn)tot.push(["VAT @ 5%",money(c.vat)]);
   k.ensure(tot.length*6.5+30);
@@ -1332,7 +1399,7 @@ function buildContractPdf(){
   k.box(L,k.y,hw,5.5);k.box(L+hw,k.y,hw,5.5);k.txt([sender,pos].filter(Boolean).join(" / ")||"Name / Designation / Signature",L+2,k.y+3.8,{i:1,s:7.5,c:GR});k.txt("Name / Signature / Company Stamp / Date",L+hw+2,k.y+3.8,{i:1,s:7.5,c:GR});
   return doc}
 function cWa(){const c=ct(),per=PER[ctType];const t=[`Hi ${$("c-name").value.trim()||"there"},`,"",`Here is your ${ctType.toLowerCase()} service contract proposal from Xtreme Facilities Management:`,""];
-  c.lines.forEach((l,i)=>t.push(`${i+1}. ${l.title}`,`   ${l.visits} visit${l.visits>1?"s":""} per ${per} × AED ${fmt(l.unit)} = AED ${fmt(l.sub)}`));
+  c.lines.forEach((l,i)=>{if(l.group)t.push(`${i+1}. ${l.title}`,...l.rows.map(r=>`   • ${r.a}${r.n?`: ${r.n}`:""}`),`   ${l.visits} visit${l.visits>1?"s":""} per ${per} × AED ${fmt(l.unit)} = AED ${fmt(l.sub)}`);else t.push(`${i+1}. ${l.title}`,`   ${l.visits} visit${l.visits>1?"s":""} per ${per} × AED ${fmt(l.unit)} = AED ${fmt(l.sub)}`)});
   t.push("",`Total per ${per}: AED ${money(c.total)}${c.vatOn?" (incl. 5% VAT)":""}`);if(c.n)t.push(`Contract value: AED ${money(c.value)} for ${c.n} ${per}${c.n>1?"s":""} (${dfmt($("c-start").value)} to ${dfmt($("c-end").value)})`);else t.push(`Starting ${dfmt($("c-start").value)}, open-ended with 30 days' notice`);
   t.push("","Reply here to confirm and we'll send the contract for signature.","","Xtreme Facilities Management",`${PHONE} | ${WEB}`);return t.join("\n")}
 $("c-wa").onclick=()=>window.open(waLink($("c-tel").value,cWa()),"_blank","noopener");
@@ -1401,7 +1468,7 @@ async function lookup(type,q,msgEl,boxEl,onDoc){
 async function showRecent(type,boxEl,msgEl,onDoc){if(!window.XFM)return;try{const l=await XFM.listDocs(type);recentChips(boxEl,l,ref=>lookup(type,ref,msgEl,boxEl,onDoc))}catch(e){}}
 function flash(ids){ids.forEach(id=>{const e=$(id);if(!e)return;e.classList.remove("filled");void e.offsetWidth;e.classList.add("filled")})}
 function invFromQuote(d){
-  items=(d.items||[]).map(l=>({d:l.title,u:"",f:String(l.visits),r:String(l.unit)}));
+  items=(d.items||[]).map(l=>l.group?{g:true,d:l.title,u:"",f:"1",r:String(l.unit),rows:(l.rows||[]).map(r=>({...r}))}:{d:l.title,u:"",f:String(l.visits),r:String(l.unit)});
   if(d.discAmt>0)items.push({d:`Discount (${fmt(d.disc)}%)`,u:"",f:"1",r:String(-d.discAmt)});
   if(!items.length)items=[{d:"",u:"",f:"1",r:""}];
   $("i-client").value=d.co||d.name||"";$("i-tel").value=d.phone||"";$("i-email").value=d.email||"";$("i-addr").value=d.loc||"";$("i-proj").value=`As per quotation ${d.ref}`;
@@ -1636,7 +1703,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.24";
+const VERSION="1.25";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};
@@ -1918,7 +1985,7 @@ function setRef(f,ref){f.value=ref;f.dataset.auto=ref;f.dispatchEvent(new Event(
 /* a field is ours to fill while it holds only the prefix or the number we gave it (not a certificate opened from history) */
 const autoOwned=f=>!/\d\s*$/.test(f.value)||f.value===f.dataset.auto;
 async function assignRef(t){const f=$(REF_FIELD[t]);if(!f||MODE!=="server"||!ME||!can(t))return;
-  f.readOnly=true;f.classList.add("autoref");f.title="Numbered automatically";
+  f.classList.add("autoref");f.title="Filled in automatically. You can change it.";
   if(!autoOwned(f)||f.dataset.sent===f.value)return;
   try{const d=await api(`ref/next?type=${t}`);if(autoOwned(f)&&f.dataset.sent!==f.value&&f.value!==d.ref)setRef(f,d.ref)}catch(e){}}
 function assignRefs(){Object.keys(REF_FIELD).forEach(assignRef)}

@@ -1,4 +1,4 @@
-XTREME v1.24 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+XTREME v1.25 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
 =======================================================================
 
 This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
@@ -6,6 +6,21 @@ GitHub repository (xtreme-sales-toolkit). The COC site can be retired afterwards
 Your existing users, Zoho WorkDrive connection and saved quotations/invoices carry over.
 The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
+
+WHAT'S NEW IN 1.25
+- Document numbers are still filled in automatically, but you can now type over them.
+  If you type a higher number (e.g. XFM/QT/2026-3899) and submit, every phone carries
+  on from there (the next one is 3900).
+- New "+ Heading with sub-items" item in quotations, invoices and contracts: one heading
+  (e.g. Office cleaning), any number of sub-items with their number of units
+  (Office rooms 5, Meeting rooms 2, Pantry 1...) and ONE price for the whole block.
+  The quotation PDF shows it like the Glass Partition Cleaning sample: heading row,
+  numbered areas with units, and one price cell (excl. VAT). Converting the quotation
+  to an invoice keeps the heading and sub-items.
+  On invoices and contracts each heading also has a frequency (visits) and a rate per
+  visit; Frequency, Rate and Total are each one merged cell beside the whole heading,
+  and the next heading gets its own cells.
+- The signature block stays on page 1 when there is room above the footer.
 
 WHAT'S NEW IN 1.24
 - Automatic document numbers. Quotation ref, invoice no., contract no., receipt no.
