@@ -168,6 +168,29 @@ jobs:
             -exportPath "$RUNNER_TEMP/export" "${AUTH[@]}"
           echo "Uploaded build ${APP_VERSION} (${BUILD_NUMBER}) to App Store Connect. It appears in TestFlight after Apple's processing (usually 5-30 min)."
 
+  # Waits for Apple to process the upload, then gives it to the internal TestFlight testers.
+  testflight:
+    needs: ios
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+      TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APP_ID: com.xtremefm.toolkit
+    steps:
+      - uses: actions/checkout@v4
+        if: env.ASC_KEY_ID != '' && env.TEAM_ID != ''
+      - uses: actions/setup-node@v4
+        if: env.ASC_KEY_ID != '' && env.TEAM_ID != ''
+        with:
+          node-version: 22
+      - name: Add the build to internal testing
+        if: env.ASC_KEY_ID != '' && env.TEAM_ID != ''
+        run: node mobile/scripts/testflight.mjs
+
   publish:
     needs: [android, ios]
     if: always() && (needs.android.result == 'success' || needs.ios.result == 'success')
