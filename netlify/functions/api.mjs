@@ -258,7 +258,7 @@ export default async (req) => {
     const me = await auth(st, req);
     if (!me) return json({ error: "Please sign in again" }, 401);
 
-    if (route === "me") { const mc = await mailCfg(st); return json({ user: cleanUser(me), zoho: !!(await zohoCfg(st)), mail: mailInfo(mc), prefs: (await st.get(`prefs:${me.id}`, { type: "json" })) || {}, version: "1.25" }); }
+    if (route === "me") { const mc = await mailCfg(st); return json({ user: cleanUser(me), zoho: !!(await zohoCfg(st)), mail: mailInfo(mc), prefs: (await st.get(`prefs:${me.id}`, { type: "json" })) || {}, version: "1.26" }); }
 
     // Personal settings (name and position for signatures) follow the user to every device.
     if (route === "prefs" && req.method === "POST") {

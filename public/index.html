@@ -951,7 +951,6 @@ function sendPanel(id,cfg){
   function snapSave(){try{if(cfg.snap&&window.XFM){const d=cfg.snap();XFM.saveDoc(cfg.docType,d.ref,d)}}catch(e){}}
   function summary(){const on=$(id+"-mailon").checked&&rcpts.length;
     $(id+"-sum").innerHTML=`<div class="sr">${I.doc}<div><small>Document</small><b>${esc(cfg.filename())}</b></div></div>
-    <div class="sr">${I.cloud}<div><small>Saves to</small><b>Zoho WorkDrive › ${esc(cfg.kind)}</b></div></div>
     <div class="sr${on?"":" off"}">${I.mail}<div><small>${on?"Emails to":"Email"}</small><b>${on?esc(rcpts.join(", ")):"Not emailed"}</b>${on?`<small>from ${esc($(id+"-from").value)}</small>`:""}</div></div>`}
   /* ---------- preview (called by the wizard when this step opens) ---------- */
   p.preview=async()=>{
@@ -971,18 +970,19 @@ function sendPanel(id,cfg){
   $(id+"-submit").onclick=async()=>{const b=$(id+"-submit");if(b.disabled||!blob)return;b.disabled=true;b.classList.add("busy");b.querySelector("span").textContent="Submitting…";$("wz-next").disabled=true;XK.wizSync&&XK.wizSync();
     const email=!!($(id+"-mailon").checked&&rcpts.length);
     try{snapSave();const r=await run(email);if(!r)return;const d=r.drive||{},m=r.mail||{};
-      const okAll=!d.error&&!d.off&&(!email||m.ok);
+      /* the WorkDrive copy happens in the background; only an admin hears about it, and only when it fails */
+      const driveBad=!!(d.error||d.off)&&XFM.isAdmin(),okAll=!driveBad&&(!email||m.ok);
       $(id+"-done").innerHTML=`<div class="done-h ${okAll?"ok":"warn"}"><span class="tick"></span><h3>${okAll?"Submitted":"Submitted with a problem"}</h3></div>
         ${node("ok",I.doc,"PDF created",esc(cfg.filename()))}
-        ${d.error?node("err",I.cloud,"WorkDrive upload failed",esc(d.error)):d.off?node("err",I.cloud,"WorkDrive isn't connected",XFM.isAdmin()?"Connect it in Settings › Zoho WorkDrive":"Ask the admin to connect it"):node("ok",I.cloud,"Saved to Zoho WorkDrive",esc(d.path||cfg.kind))}
+        ${!driveBad?"":d.error?node("err",I.cloud,"WorkDrive upload failed",esc(d.error)):node("err",I.cloud,"WorkDrive isn't connected","Connect it in Settings › Zoho WorkDrive")}
         ${!email?node("off",I.mail,"Not emailed","You chose not to email this one"):m.error?node("err",I.mail,"Email failed",esc(m.error)):m.off?node("err",I.mail,"Email isn't set up",""):node("ok",I.mail,m.updated?"Updated copy emailed":"Emailed",esc((m.to||[]).join?m.to.join(", "):m.to)+` · from ${esc(m.from||"")}`)}
-        <div class="actions"><button class="btn primary" type="button" data-again>${d.error||(email&&m.error)?"Try again":"Edit and resend"}</button><button class="btn" type="button" data-wshare>${I.share}Share PDF</button><button class="btn" type="button" data-new>Start a new one</button><button class="btn" type="button" data-home>Back to home</button></div>`;
+        <div class="actions"><button class="btn primary" type="button" data-again>${driveBad||(email&&m.error)?"Try again":"Edit and resend"}</button><button class="btn" type="button" data-wshare>${I.share}Share PDF</button><button class="btn" type="button" data-new>Start a new one</button><button class="btn" type="button" data-home>Back to home</button></div>`;
       $(id+"-done").hidden=false;$(id+"-acts").hidden=true;$(id+"-done").scrollIntoView({behavior:"smooth",block:"start"});
-      toast(okAll?(email?"Saved and emailed":"Saved to WorkDrive"):"Check the problem shown")}
+      toast(okAll?(email?"Submitted and emailed":"Submitted"):"Check the problem shown")}
     catch(e){toast(e.message)}
     finally{b.disabled=false;b.classList.remove("busy");b.querySelector("span").textContent="Submit";$("wz-next").disabled=false;XK.wizSync&&XK.wizSync()}};
   $(id+"-done").addEventListener("click",async e=>{if(e.target.closest("[data-again]")){$(id+"-done").hidden=true;$(id+"-acts").hidden=false;XK.wizSync&&XK.wizSync();window.scrollTo({top:0,behavior:"smooth"})}
-    if(e.target.closest("[data-wshare]"))share();if(e.target.closest("[data-home]"))XK.go("home");if(e.target.closest("[data-new]")&&confirm("Clear this form and start a new one? The one you sent is saved in WorkDrive."))XK.fresh()});
+    if(e.target.closest("[data-wshare]"))share();if(e.target.closest("[data-home]"))XK.go("home");if(e.target.closest("[data-new]")&&confirm("Clear this form and start a new one? The one you sent is saved."))XK.fresh()});
   async function share(){if(!blob)return;run(false).catch(()=>{});const res=await deliverPdf(blob,cfg.filename(),$(id+"-subj").value,"");if(res==="saved")toast("PDF saved")}
   $(id+"-share").onclick=share;
   $(id+"-open").onclick=()=>{if(nativeApp()){if(blob)nativeShare(blob,cfg.filename(),cfg.filename(),"").catch(()=>{});return}if(url)window.open(url,"_blank","noopener")};
@@ -1703,7 +1703,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.25";
+const VERSION="1.26";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};
