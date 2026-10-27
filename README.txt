@@ -17,6 +17,9 @@ WHAT'S NEW IN 1.25
   The quotation PDF shows it like the Glass Partition Cleaning sample: heading row,
   numbered areas with units, and one price cell (excl. VAT). Converting the quotation
   to an invoice keeps the heading and sub-items.
+  On invoices and contracts each heading also has a frequency (visits) and a rate per
+  visit; Frequency, Rate and Total are each one merged cell beside the whole heading,
+  and the next heading gets its own cells.
 - The signature block stays on page 1 when there is room above the footer.
 
 WHAT'S NEW IN 1.24
