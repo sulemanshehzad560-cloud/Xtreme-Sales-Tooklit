@@ -1028,9 +1028,8 @@ function pdfKit(title,fromAlias){
     rows.forEach(r=>r.ht=r.h?Math.max(7,r.t.length*4.3+3):Math.max(6.5,r.t.length*3.9+2.7));
     k.ensure(rows[0].ht+(rows[1]?rows[1].ht:0));
     let segY=k.y,first=true;
-    /* no lines between the sub-items: the No., description and unit columns are one open box per heading */
+    /* the No., description and unit columns have no borders; only the value cells are boxed */
     const close=()=>{const h=k.y-segY;if(h<=0)return;
-      (o.unit==null?[0,1]:[...Array(m0).keys()]).forEach(c=>{const x1=o.unit==null&&c===1?C[m0]:C[c+1];k.box(C[c],segY,x1-C[c],h)});
       o.cells.forEach(c=>{const x0=C[c.col],x1=C[c.col+1]||R;k.box(x0,segY,x1-x0,h);
         if(first&&c.text){const cx=(x0+x1)/2,cy=segY+h/2;k.fit(c.text,cx,cy+(c.cap?0.4:1.5),x1-x0-3,{s:c.b?10:9,a:"center"});if(c.cap)k.txt(c.cap,cx,cy+4.3,{a:"center",s:7,c:GR})}});first=false};
     rows.forEach(r=>{if(k.y+r.ht>BOTTOM){close();doc.addPage();k.decor();k.y=34;o.head();segY=k.y}
@@ -1178,7 +1177,7 @@ function buildQuotePdf(){
     const body=[{t:titleLines,h:titleLines.length*4.3}];if(scopeLines.length){body.push({lab:1,h:5.5});scopeLines.forEach(x=>body.push({t:[x.t],h:3.8,s:1}))}
     let first=true;k.ensure(Math.min(4+body.slice(0,4).reduce((a,b)=>a+b.h,0)+2,120));
     while(body.length){let n=0,hh=4;while(n<body.length&&(n===0||k.y+hh+body[n].h+2<=272)){hh+=body[n].h;n++}const rowH=hh+2,part=body.splice(0,n);
-      for(let i=0;i<4;i++)k.box(C[i],k.y,C[i+1]-C[i],rowH);
+      for(let i=1;i<4;i++)k.box(C[i],k.y,C[i+1]-C[i],rowH);
       let yy=k.y+5;part.forEach(b=>{if(b.lab){k.txt("Scope of work:",C[0]+2,yy+1.5,{b:1,s:8.3,c:GR});yy+=5.5;return}
         if(b.s){doc.setFont("helvetica","normal");doc.setFontSize(8.3);doc.setTextColor(40,40,40);doc.text(b.t,C[0]+3,yy);yy+=3.8}else{doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(b.t,C[0]+2,yy);yy+=b.h}});
       if(first){k.txt(String(l.visits),(C[1]+C[2])/2,k.y+5,{a:"center",s:9});k.txt(money(l.unit),C[3]-2,k.y+5,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+5,{a:"right",s:9,b:1})}
@@ -1186,7 +1185,7 @@ function buildQuotePdf(){
   }else{
     q.lines.forEach((l,i)=>{const tl=k.split(l.title,C[2]-C[1]-4,9,1),h=Math.max(7,tl.length*4.3+3);
       if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
-      for(let c=0;c<5;c++)k.box(C[c],k.y,C[c+1]-C[c],h);
+      for(let c=2;c<5;c++)k.box(C[c],k.y,C[c+1]-C[c],h);
       k.txt(String(i+1),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(tl,C[1]+2,k.y+4.8);
       k.txt(String(l.visits),(C[2]+C[3])/2,k.y+4.8,{a:"center",s:9});k.txt(money(l.unit),C[4]-2,k.y+4.8,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+4.8,{a:"right",s:9,b:1});k.y+=h});
   }
@@ -1271,7 +1270,7 @@ function buildInvoicePdf(){
     if(it&&it.g){n++;k.group({C,head,no:n,title:it.d||"Services",rows:groupRows(it),unit:2,cells:[{col:3,text:it.f===""?"1":it.f},{col:4,text:it.r!==""?money(num(it.r)):""},{col:5,text:it.r!==""?money(lineTotal(it)):"",b:1}]});continue}
     const dl2=it?k.split(it.d,C[2]-C[1]-3):[];const h=Math.max(6.5,dl2.length*3.8+2.7);
     if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
-    for(let c=0;c<6;c++)k.box(C[c],k.y,C[c+1]-C[c],h);
+    for(let c=3;c<6;c++)k.box(C[c],k.y,C[c+1]-C[c],h);
     if(it){n++;k.txt(n,(C[0]+C[1])/2,k.y+4.4,{a:"center",s:8.5,c:GR});doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(20,20,20);doc.text(dl2,C[1]+1.5,k.y+4.4);
       k.txt(it.u,(C[2]+C[3])/2,k.y+4.4,{a:"center",s:8.5});k.txt(it.f===""?"1":it.f,(C[3]+C[4])/2,k.y+4.4,{a:"center",s:8.5});
       if(it.r!=="")k.txt(money(num(it.r)),C[5]-2,k.y+4.4,{a:"right",s:8.5});k.txt(it.r!==""?money(lineTotal(it)):"",R-2,k.y+4.4,{a:"right",s:8.5,b:1})}
@@ -1371,7 +1370,7 @@ function buildContractPdf(){
   head();
   c.lines.forEach((l,i)=>{if(l.group){k.group({C,head,no:i+1,title:l.title,rows:l.rows,unit:null,cells:[{col:2,text:String(l.visits)},{col:3,text:money(l.unit)},{col:4,text:money(l.sub),b:1}]});return}
     const tl=k.split(l.title,C[2]-C[1]-4,9,1),h=Math.max(7,tl.length*4.3+3);if(k.y+h>272){doc.addPage();k.decor();k.y=34;head()}
-    for(let j=0;j<5;j++)k.box(C[j],k.y,C[j+1]-C[j],h);k.txt(String(i+1),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(tl,C[1]+2,k.y+4.8);
+    for(let j=2;j<5;j++)k.box(C[j],k.y,C[j+1]-C[j],h);k.txt(String(i+1),(C[0]+C[1])/2,k.y+4.8,{a:"center",s:9,c:GR});doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(tl,C[1]+2,k.y+4.8);
     k.txt(String(l.visits),(C[2]+C[3])/2,k.y+4.8,{a:"center",s:9});k.txt(money(l.unit),C[4]-2,k.y+4.8,{a:"right",s:9});k.txt(money(l.sub),R-2,k.y+4.8,{a:"right",s:9,b:1});k.y+=h});
   const TC=L+62,VC=C[4],LW=VC-TC-4;const P=per[0].toUpperCase()+per.slice(1);
   const tot=[[`Total per ${P} excl. VAT`,money(c.per)],["Discount",c.discAmt?"-"+money(c.discAmt):"0.00"]];if(c.vatOn)tot.push(["VAT @ 5%",money(c.vat)]);
