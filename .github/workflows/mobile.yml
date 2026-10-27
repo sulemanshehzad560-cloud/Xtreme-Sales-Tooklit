@@ -35,7 +35,7 @@ concurrency:
 
 env:
   APP_URL: ${{ inputs.app_url || vars.APP_URL || 'https://xtremesalestoolkit.netlify.app' }}
-  APP_VERSION: "1.24"
+  APP_VERSION: "1.26"
   BUILD_NUMBER: ${{ github.run_number }}
 
 jobs:
