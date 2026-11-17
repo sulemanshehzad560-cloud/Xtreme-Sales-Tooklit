@@ -674,6 +674,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
     <div><label class="lbl" for="r-date">Date</label><input type="date" id="r-date"></div>
   </div>
   <div class="field"><label class="lbl" for="r-from">Received from (client / company)</label><input type="text" id="r-from"></div>
+  <div class="field"><label class="lbl" for="r-addr">Client address</label><input type="text" id="r-addr" placeholder="e.g. Villa 12, Khalifa City, Abu Dhabi (optional)"></div>
   <div class="field row2">
     <div><label class="lbl" for="r-tel">Client WhatsApp / tel</label><input type="tel" id="r-tel" placeholder="050 123 4567"></div>
     <div><label class="lbl" for="r-email">Client email</label><input type="text" id="r-email" inputmode="email"></div>
@@ -1419,14 +1420,14 @@ function rCalc(){const {amt,due,bal}=rc();$("r-num").innerHTML=`<small>AED</smal
   $("r-lines").innerHTML=L;$("r-words").textContent=amt?amountWords(amt):"";
   const m=$("r-method").value;$("r-refw").hidden=m==="Cash";$("r-refl").textContent=m==="Cheque"?"Cheque no. / bank":m==="Card"?"Card approval no.":"Transfer reference";
   rPanel&&rPanel.update()}
-["r-no","r-date","r-from","r-tel","r-email","r-amt","r-total","r-ref","r-inv","r-for"].forEach(id=>$(id).addEventListener("input",rCalc));$("r-method").addEventListener("change",rCalc);
+["r-no","r-date","r-from","r-addr","r-tel","r-email","r-amt","r-total","r-ref","r-inv","r-for"].forEach(id=>$(id).addEventListener("input",rCalc));$("r-method").addEventListener("change",rCalc);
 function buildReceiptPdf(){
   const from=$("rr-from").value,k=pdfKit("PAYMENT RECEIPT",from),{doc,L,R,W}=k;const g=id=>$(id).value.trim();const {amt,due,bal}=rc();const m=$("r-method").value;
   k.pair("Receipt Date",dfmt(g("r-date")),"Receipt No.",g("r-no"));
   k.pair("Payment Method",m,"Against Invoice",g("r-inv"));
   if(m!=="Cash")k.wide($("r-refl").textContent,g("r-ref"));
   k.y+=4;k.band(L,k.y,W,6,"RECEIVED FROM");k.y+=6;
-  [["Client / Company",g("r-from")],["Tel",g("r-tel")],["Email",g("r-email")]].forEach(([l,v])=>k.row(l,v));
+  [["Client / Company",g("r-from")],["Address",g("r-addr")],["Tel",g("r-tel")],["Email",g("r-email")]].filter(([l,v])=>l!=="Address"||v).forEach(([l,v])=>k.row(l,v));
   k.y+=4;k.band(L,k.y,W,6,"PAYMENT DETAILS");k.y+=6;
   const fl=k.split(g("r-for")||"Payment received",W-44,9),fh=Math.max(7,fl.length*4.3+3);
   k.box(L,k.y,38,fh,LAB);k.box(L+38,k.y,W-38,fh);k.txt("Being payment for",L+2,k.y+4.7,{b:1});doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(20,20,20);doc.text(fl,L+40,k.y+4.7);k.y+=fh;
@@ -1477,11 +1478,11 @@ let rqType="invoice";
 function setRq(t){rqType=t;$("rq-q").setAttribute("aria-pressed",t==="quote");$("rq-i").setAttribute("aria-pressed",t==="invoice");$("rq-ref").placeholder=t==="quote"?"Quotation ref, e.g. 145":"Invoice no., e.g. 80";$("rq-msg").textContent="Enter the number. Everything stays editable after it loads.";showRecent(t,$("rq-recent"),$("rq-msg"),rcFrom)}
 function rcFrom(d){
   const isQ=rqType==="quote";
-  $("r-from").value=isQ?(d.co||d.name||""):(d.client||"");$("r-tel").value=(isQ?d.phone:d.tel)||"";$("r-email").value=d.email||"";
+  $("r-from").value=isQ?(d.co||d.name||""):(d.client||"");$("r-tel").value=(isQ?d.phone:d.tel)||"";$("r-email").value=d.email||"";$("r-addr").value=(isQ?d.loc:d.addr)||"";
   $("r-inv").value=isQ?"":d.ref;$("r-total").value=String(d.total);$("r-amt").value=String(d.total);
   const what=(d.items||[]).map(i=>isQ?i.title:i.d).filter(t=>t&&!/^Discount \(/.test(t)).join(", ");
   $("r-for").value=isQ?`Quotation ${d.ref}: ${what}`:(d.proj&&!/^As per quotation/.test(d.proj)?d.proj:what);
-  rCalc();flash(["r-from","r-tel","r-email","r-inv","r-total","r-amt","r-for"]);
+  rCalc();flash(["r-from","r-addr","r-tel","r-email","r-inv","r-total","r-amt","r-for"]);
   $("rq-msg").innerHTML=`<b>Loaded ${isQ?"quotation":"invoice"} ${esc(d.ref)}</b> · total AED ${money(d.total)}. Change the amount received if this is a part payment (e.g. 50% advance).`;
   $("rq-recent").innerHTML="";toast(`${isQ?"Quotation":"Invoice"} ${d.ref} loaded`);$("r-amt").focus()}
 $("iq-go").onclick=()=>lookup("quote",$("iq-ref").value,$("iq-msg"),$("iq-recent"),invFromQuote);
@@ -1700,7 +1701,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.27";
+const VERSION="1.28";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};
