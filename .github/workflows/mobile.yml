@@ -195,7 +195,7 @@ jobs:
     steps:
       # tester emails are read from the run request (not echoed), and masked in the log
       - name: Hide tester emails in the log
-        run: jq -r '.inputs.testers // ""' "$GITHUB_EVENT_PATH" | tr ',; ' '\n\n\n' | while read -r e; do [ -n "$e" ] && echo "::add-mask::$e"; done; true
+        run: jq -r '.inputs.testers // ""' "$GITHUB_EVENT_PATH" | tr ',; ' '\n\n\n' | while read -r e || [ -n "$e" ]; do if [ -n "$e" ]; then echo "::add-mask::$e"; fi; done
       - uses: actions/checkout@v4
         if: env.ASC_KEY_ID != '' && env.TEAM_ID != ''
       - uses: actions/setup-node@v4
