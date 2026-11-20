@@ -812,8 +812,8 @@ const PRICES={
   Villa:{"2 BHK":[300,1100,850],"3 BHK":[350,1300,1050],"4 BHK":[450,1600,1200],"5 BHK":[600,1900,1350],"6 BHK":[850,2300,1575]},
   Office:{"Small (up to 1,000 sq ft)":[200,600,null],"Medium (1,001–3,000 sq ft)":[320,900,null],"Large (3,001–5,000 sq ft)":[500,1400,null]}
 };
-const SVCS=["Normal cleaning","Deep cleaning","Deep cleaning (AMC)"];
-const SVC_T=["Normal Cleaning","Deep Cleaning","Deep Cleaning (AMC)"];
+const SVCS=["Normal cleaning","Deep cleaning","Deep cleaning (AMC)","Monthly regular cleaning"];
+const SVC_T=["Normal Cleaning","Deep Cleaning","Deep Cleaning (AMC)","Monthly Regular Cleaning"];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num=v=>{const n=parseFloat(String(v).replace(/,/g,""));return isNaN(n)?0:n};
@@ -1078,7 +1078,7 @@ function renderPicker(){const x=it();
   $("v-out").textContent=x.visits;$("q-rate").value=x.rate;$("q-desc").value=x.desc;rateNote();
   $("q-edit-h").textContent=qItems.length>1?`Editing service ${cur+1} of ${qItems.length}`:"";$("q-edit-h").hidden=qItems.length<2;
 }
-function rateNote(){if(it().custom){$("q-ratenote").textContent=it().group?"One price for the heading and all its sub-items":"Enter the price per visit or per unit";return}const x=it(),lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));$("q-ratenote").innerHTML=x.rateEdited&&num(x.rate)!==lp?`Price list: AED ${fmt(lp)} · <button type="button" class="linkbtn" id="q-ratereset">Reset</button>`:"Tap the price to change it"}
+function rateNote(){if(it().custom){$("q-ratenote").textContent=it().group?"One price for the heading and all its sub-items":"Enter the price per visit or per unit";return}const x=it(),lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));if(lp==null){$("q-ratenote").textContent="Not in the price list: enter the price per visit";return}$("q-ratenote").innerHTML=x.rateEdited&&num(x.rate)!==lp?`Price list: AED ${fmt(lp)} · <button type="button" class="linkbtn" id="q-ratereset">Reset</button>`:"Tap the price to change it"}
 function lineOf(x){const idx=SVCS.indexOf(x.svc),unit=num(x.rate);if(x.group){const t=x.desc.trim()||"Cleaning services",v=x.visits||1;return {...x,visits:v,idx,unit,sub:r2(unit*v),rows:groupRows(x),title:t,short:t}}return {...x,idx,unit,sub:r2(unit*x.visits),title:x.desc.trim()||autoTitle(x),short:x.descEdited&&x.desc.trim()?x.desc.trim():`${x.s} ${x.p}, ${x.svc.toLowerCase()}`,amc:listPrice(x.p,x.s,2),deep:listPrice(x.p,x.s,1)}}
 function quote(){
   const lines=qItems.map(lineOf),n=lines.length,sub=r2(lines.reduce((s,l)=>s+l.sub,0));
@@ -1093,7 +1093,7 @@ const SCOPE={
   offDeep:["Workstations, desks and partitions dusted and wiped","Pantry and cafe area: degreasing of counters, cabinets, sink and appliance exteriors","Washrooms descaled and disinfected","Internal glass, doors and frames cleaned","Floors vacuumed and mopped","Waste removal and handover of the office in a clean condition"],
   offNormal:["Workstations and desks dusted and wiped","Pantry counters and sink cleaned","Washrooms cleaned and disinfected","Floors vacuumed and mopped","Bins emptied"]
 };
-function scopeOf(l){if(l.custom)return [];const off=l.p==="Office";let s=(l.idx===0?(off?SCOPE.offNormal:SCOPE.resNormal):(off?SCOPE.offDeep:SCOPE.resDeep)).slice();if(l.idx===2)s.push("Visits carried out as per the annual maintenance contract schedule");return s}
+function scopeOf(l){if(l.custom)return [];const off=l.p==="Office";let s=(l.idx===0||l.idx===3?(off?SCOPE.offNormal:SCOPE.resNormal):(off?SCOPE.offDeep:SCOPE.resDeep)).slice();if(l.idx===2)s.push("Visits carried out as per the annual maintenance contract schedule");if(l.idx===3)s.push("Regular visits carried out every month as per the agreed schedule");return s}
 function defaultScope(q){
   if(q.n===1)return scopeOf(q.lines[0]).join("\n");
   const groups=[];q.lines.forEach(l=>{if(l.custom)return;const key=(l.p==="Office"?"o":"r")+l.idx;let g=groups.find(x=>x.key===key);if(!g){g={key,titles:[],items:scopeOf(l)};groups.push(g)}if(!g.titles.includes(l.title))g.titles.push(l.title)});
@@ -1247,11 +1247,11 @@ $("i-items").addEventListener("click",e=>{const b=e.target.closest("[data-rm]");
 $("i-add").onclick=()=>{items.push({d:"",u:"",f:"1",r:""});renderItems();invCalc()};
 const blankInv=()=>items.length===1&&!items[0].d&&!items[0].r&&!items[0].g;
 $("i-addg").onclick=()=>{const g={g:true,d:"",u:"",f:"1",r:"",rows:[{a:"",n:""},{a:"",n:""}]};if(blankInv())items[0]=g;else items.push(g);renderItems();invCalc();const ins=$("i-items").querySelectorAll('[data-k="d"]');ins[ins.length-1].focus()};
-function addPriced(prop,size,idx){const r=PRICES[prop][size][idx];if(r==null)return;const it={d:`${SVC_T[idx]} of ${size} ${prop}`,u:"",f:"1",r:String(r)};if(items.length===1&&!items[0].d&&!items[0].r)items[0]=it;else items.push(it);renderItems();invCalc()}
+function addPriced(prop,size,idx){const r=PRICES[prop][size][idx];if(r==null&&idx!==3)return;const it={d:`${SVC_T[idx]} of ${size} ${prop}`,u:"",f:"1",r:r==null?"":String(r)};if(items.length===1&&!items[0].d&&!items[0].r)items[0]=it;else items.push(it);renderItems();invCalc()}
 function fillSel(sel,opts){sel.innerHTML=opts.map(o=>`<option>${esc(o)}</option>`).join("")}
 let pkIdx=[];
 function pkSizes(){fillSel($("pk-size"),Object.keys(PRICES[$("pk-prop").value]));pkSvcs()}
-function pkSvcs(){const row=PRICES[$("pk-prop").value][$("pk-size").value];pkIdx=[];const o=[];row.forEach((v,i)=>{if(v!=null){pkIdx.push(i);o.push(`${SVCS[i]} (AED ${fmt(v)})`)}});fillSel($("pk-svc"),o)}
+function pkSvcs(){const row=PRICES[$("pk-prop").value][$("pk-size").value];pkIdx=[];const o=[];SVCS.forEach((n,i)=>{const v=row[i];if(v!=null){pkIdx.push(i);o.push(`${n} (AED ${fmt(v)})`)}else if(i===3){pkIdx.push(i);o.push(`${n} (enter price)`)}});fillSel($("pk-svc"),o)}
 fillSel($("pk-prop"),Object.keys(PRICES));pkSizes();$("pk-prop").onchange=pkSizes;$("pk-size").onchange=pkSvcs;
 $("i-addq").onclick=()=>{$("i-pick").hidden=!$("i-pick").hidden};
 $("pk-go").onclick=()=>{addPriced($("pk-prop").value,$("pk-size").value,pkIdx[$("pk-svc").selectedIndex]);$("i-pick").hidden=true;toast("Item added")};
@@ -1326,7 +1326,7 @@ function cRenderPicker(){const x=ci();$("c-presets").hidden=!!x.custom;pickerMod
     document.querySelector('input[name="csvc"][value="Deep cleaning (AMC)"]').disabled=listPrice(x.p,x.s,2)==null}
   $("cv-out").textContent=x.visits;$("c-rate").value=x.rate;$("c-desc").value=x.desc;cRateNote();
   $("c-edit-h").hidden=cItems.length<2&&!x.custom;$("c-edit-h").textContent=cItems.length>1?`Editing item ${cc+1} of ${cItems.length}${x.custom?` (${kindOf(x)})`:""}`:x.group?"Heading with sub-items":"Custom item"}
-function cRateNote(){const x=ci();if(x.custom){$("c-ratenote").textContent=x.group?"One price per visit for the heading and all its sub-items":"Enter the price per visit";return}const lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));$("c-ratenote").innerHTML=x.rateEdited&&num(x.rate)!==lp?`Price list: AED ${fmt(lp)} · <button type="button" class="linkbtn" id="c-ratereset">Reset</button>`:"Tap the price to change it"}
+function cRateNote(){const x=ci();if(x.custom){$("c-ratenote").textContent=x.group?"One price per visit for the heading and all its sub-items":"Enter the price per visit";return}const lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));if(lp==null){$("c-ratenote").textContent="Not in the price list: enter the price per visit";return}$("c-ratenote").innerHTML=x.rateEdited&&num(x.rate)!==lp?`Price list: AED ${fmt(lp)} · <button type="button" class="linkbtn" id="c-ratereset">Reset</button>`:"Tap the price to change it"}
 function ct(){const lines=cItems.map(lineOf),per=r2(lines.reduce((s,l)=>s+l.sub,0));const disc=Math.min(Math.max(num($("c-disc").value),0),100),discAmt=r2(per*disc/100),net=r2(per-discAmt);const vatOn=$("c-vat").checked,vat=vatOn?r2(net*0.05):0,total=r2(net+vat);const n=periods();return {lines,per,disc,discAmt,net,vatOn,vat,total,n,value:n?r2(total*n):null,valueNet:n?r2(net*n):null}}
 function cDefaultScope(){const groups=[];cItems.map(lineOf).forEach(l=>{if(l.custom)return;const key=l.p+"|"+l.idx;let g=groups.find(x=>x.key===key);if(!g){g={key,head:`${l.p} – ${SVC_T[l.idx]}`,sizes:[],items:scopeOf(l)};groups.push(g)}if(!g.sizes.includes(l.s))g.sizes.push(l.s)});return groups.map(g=>`${g.head} (${g.sizes.join(", ")}):\n`+g.items.join("\n")).join("\n")}
 function cDefaultTerms(){const st=dfmt($("c-start").value),en=dfmt($("c-end").value),per=PER[ctType],t=[];
@@ -1493,8 +1493,8 @@ $("rq-q").onclick=()=>setRq("quote");$("rq-i").onclick=()=>setRq("invoice");
 $("t-inv").addEventListener("click",()=>showRecent("quote",$("iq-recent"),$("iq-msg"),invFromQuote));
 $("t-rc").addEventListener("click",()=>showRecent(rqType,$("rq-recent"),$("rq-msg"),rcFrom));
 /* ---------- MESSAGES ---------- */
-const MSVC=["Regular cleaning","Deep cleaning","Move-in / move-out cleaning","Post-construction cleaning","Kitchen & bathroom cleaning","Carpet & upholstery cleaning","AC duct cleaning","Pest control","Water tank cleaning & disinfection","Facade cleaning","Grease trap cleaning","Kitchen exhaust cleaning","Nanny & house helper services","Drapery services"];
-fillSel($("m-svc"),MSVC);$("m-svc").selectedIndex=1;
+const MSVC=["Regular cleaning","Monthly regular cleaning","Deep cleaning","Move-in / move-out cleaning","Post-construction cleaning","Kitchen & bathroom cleaning","Carpet & upholstery cleaning","AC duct cleaning","Pest control","Water tank cleaning & disinfection","Facade cleaning","Grease trap cleaning","Kitchen exhaust cleaning","Nanny & house helper services","Drapery services"];
+fillSel($("m-svc"),MSVC);$("m-svc").selectedIndex=2;
 const g=(id,ph)=>$(id).value.trim()||ph,sv=()=>$("m-svc").value.toLowerCase();
 const MT=[
  ["Reply to a new enquiry",()=>`Hi ${g("m-name","there")}, thank you for contacting Xtreme Facilities Management. We'd be happy to help with ${sv()}.\n\nCould you share:\n• Property type (apartment, villa or office)\n• Size (e.g. 2 BHK)\n• Location in Abu Dhabi\n• Preferred date\n\nWe'll send your price right away.`],
@@ -1520,8 +1520,8 @@ const PRICES={
   Villa:{"2 BHK":[300,1100,850],"3 BHK":[350,1300,1050],"4 BHK":[450,1600,1200],"5 BHK":[600,1900,1350],"6 BHK":[850,2300,1575]},
   Office:{"Small (up to 1,000 sq ft)":[200,600,null],"Medium (1,001–3,000 sq ft)":[320,900,null],"Large (3,001–5,000 sq ft)":[500,1400,null]}
 };
-const SVCS=["Normal cleaning","Deep cleaning","Deep cleaning (AMC)"];
-const SVC_T=["Normal Cleaning","Deep Cleaning","Deep Cleaning (AMC)"];
+const SVCS=["Normal cleaning","Deep cleaning","Deep cleaning (AMC)","Monthly regular cleaning"];
+const SVC_T=["Normal Cleaning","Deep Cleaning","Deep Cleaning (AMC)","Monthly Regular Cleaning"];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num=v=>{const n=parseFloat(String(v).replace(/,/g,""));return isNaN(n)?0:n};
@@ -1555,7 +1555,7 @@ const BLACK=[13,13,13],GOLDF=[212,175,90],LAB=[242,242,242],CREAM=[246,234,214],
 
 /* ---------- COC ---------- */
 const UNITS=["Studio","1 BHK","2 BHK","3 BHK","4 BHK","Villa / Other"],FURN=["Furnished","Semi-furnished","Unfurnished"];
-const TYPES=["Regular cleaning","Deep cleaning","Move-in / move-out","Post-construction","Kitchen & bathroom","Carpet & upholstery","Window cleaning","AC duct cleaning","Others"];
+const TYPES=["Regular cleaning","Monthly regular cleaning","Deep cleaning","Move-in / move-out","Post-construction","Kitchen & bathroom","Carpet & upholstery","Window cleaning","AC duct cleaning","Others"];
 const STATUS=["Completed","Partially completed","Pending"];
 const DEF_CERT="This is to certify that the works listed above have been completed by Xtreme Facilities Management at the stated premises, in accordance with the agreed scope, and handed over in a clean and satisfactory condition.";
 let types=new Set(["Deep cleaning"]),works=[{d:"",q:"",s:"Completed"}],photos=[];
@@ -1701,7 +1701,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.28";
+const VERSION="1.29";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};

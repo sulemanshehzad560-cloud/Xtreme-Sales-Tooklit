@@ -1,4 +1,4 @@
-XTREME v1.28 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+XTREME v1.29 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
 =======================================================================
 
 This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
@@ -6,6 +6,12 @@ GitHub repository (xtreme-sales-toolkit). The COC site can be retired afterwards
 Your existing users, Zoho WorkDrive connection and saved quotations/invoices carry over.
 The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
+
+WHAT'S NEW IN 1.29
+- New service "Monthly regular cleaning" in quotations, contracts, the invoice
+  "Add from price list", customer messages and completion certificate types.
+  It has no list price yet: type the price per visit (the app says so).
+  Its scope of work is the regular cleaning list plus monthly scheduled visits.
 
 WHAT'S NEW IN 1.28
 - Receipt: new "Client address" field under "Received from". It prints on the PDF
