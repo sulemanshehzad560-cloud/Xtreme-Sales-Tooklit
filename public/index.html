@@ -812,8 +812,8 @@ const PRICES={
   Villa:{"2 BHK":[300,1100,850],"3 BHK":[350,1300,1050],"4 BHK":[450,1600,1200],"5 BHK":[600,1900,1350],"6 BHK":[850,2300,1575]},
   Office:{"Small (up to 1,000 sq ft)":[200,600,null],"Medium (1,001–3,000 sq ft)":[320,900,null],"Large (3,001–5,000 sq ft)":[500,1400,null]}
 };
-const SVCS=["Normal cleaning","Deep cleaning","Deep cleaning (AMC)","Monthly regular cleaning"];
-const SVC_T=["Normal Cleaning","Deep Cleaning","Deep Cleaning (AMC)","Monthly Regular Cleaning"];
+const SVCS=["Normal cleaning","Deep cleaning","Deep cleaning (AMC)","Monthly cleaning contract"];
+const SVC_T=["Normal Cleaning","Deep Cleaning","Deep Cleaning (AMC)","Monthly Cleaning Contract"];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num=v=>{const n=parseFloat(String(v).replace(/,/g,""));return isNaN(n)?0:n};
@@ -1493,7 +1493,7 @@ $("rq-q").onclick=()=>setRq("quote");$("rq-i").onclick=()=>setRq("invoice");
 $("t-inv").addEventListener("click",()=>showRecent("quote",$("iq-recent"),$("iq-msg"),invFromQuote));
 $("t-rc").addEventListener("click",()=>showRecent(rqType,$("rq-recent"),$("rq-msg"),rcFrom));
 /* ---------- MESSAGES ---------- */
-const MSVC=["Regular cleaning","Monthly regular cleaning","Deep cleaning","Move-in / move-out cleaning","Post-construction cleaning","Kitchen & bathroom cleaning","Carpet & upholstery cleaning","AC duct cleaning","Pest control","Water tank cleaning & disinfection","Facade cleaning","Grease trap cleaning","Kitchen exhaust cleaning","Nanny & house helper services","Drapery services"];
+const MSVC=["Regular cleaning","Monthly cleaning contract","Deep cleaning","Move-in / move-out cleaning","Post-construction cleaning","Kitchen & bathroom cleaning","Carpet & upholstery cleaning","AC duct cleaning","Pest control","Water tank cleaning & disinfection","Facade cleaning","Grease trap cleaning","Kitchen exhaust cleaning","Nanny & house helper services","Drapery services"];
 fillSel($("m-svc"),MSVC);$("m-svc").selectedIndex=2;
 const g=(id,ph)=>$(id).value.trim()||ph,sv=()=>$("m-svc").value.toLowerCase();
 const MT=[
@@ -1520,8 +1520,8 @@ const PRICES={
   Villa:{"2 BHK":[300,1100,850],"3 BHK":[350,1300,1050],"4 BHK":[450,1600,1200],"5 BHK":[600,1900,1350],"6 BHK":[850,2300,1575]},
   Office:{"Small (up to 1,000 sq ft)":[200,600,null],"Medium (1,001–3,000 sq ft)":[320,900,null],"Large (3,001–5,000 sq ft)":[500,1400,null]}
 };
-const SVCS=["Normal cleaning","Deep cleaning","Deep cleaning (AMC)","Monthly regular cleaning"];
-const SVC_T=["Normal Cleaning","Deep Cleaning","Deep Cleaning (AMC)","Monthly Regular Cleaning"];
+const SVCS=["Normal cleaning","Deep cleaning","Deep cleaning (AMC)","Monthly cleaning contract"];
+const SVC_T=["Normal Cleaning","Deep Cleaning","Deep Cleaning (AMC)","Monthly Cleaning Contract"];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num=v=>{const n=parseFloat(String(v).replace(/,/g,""));return isNaN(n)?0:n};
@@ -1555,7 +1555,7 @@ const BLACK=[13,13,13],GOLDF=[212,175,90],LAB=[242,242,242],CREAM=[246,234,214],
 
 /* ---------- COC ---------- */
 const UNITS=["Studio","1 BHK","2 BHK","3 BHK","4 BHK","Villa / Other"],FURN=["Furnished","Semi-furnished","Unfurnished"];
-const TYPES=["Regular cleaning","Monthly regular cleaning","Deep cleaning","Move-in / move-out","Post-construction","Kitchen & bathroom","Carpet & upholstery","Window cleaning","AC duct cleaning","Others"];
+const TYPES=["Regular cleaning","Monthly cleaning contract","Deep cleaning","Move-in / move-out","Post-construction","Kitchen & bathroom","Carpet & upholstery","Window cleaning","AC duct cleaning","Others"];
 const STATUS=["Completed","Partially completed","Pending"];
 const DEF_CERT="This is to certify that the works listed above have been completed by Xtreme Facilities Management at the stated premises, in accordance with the agreed scope, and handed over in a clean and satisfactory condition.";
 let types=new Set(["Deep cleaning"]),works=[{d:"",q:"",s:"Completed"}],photos=[];

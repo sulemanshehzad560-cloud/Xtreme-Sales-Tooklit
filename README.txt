@@ -8,7 +8,7 @@ The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
 
 WHAT'S NEW IN 1.29
-- New service "Monthly regular cleaning" in quotations, contracts, the invoice
+- New service "Monthly Cleaning Contract" in quotations, contracts, the invoice
   "Add from price list", customer messages and completion certificate types.
   It has no list price yet: type the price per visit (the app says so).
   Its scope of work is the regular cleaning list plus monthly scheduled visits.
