@@ -619,7 +619,8 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
   <h2 class="ph">Contract type</h2>
   <div class="field"><span class="lbl">Billing cycle</span><div class="chips" id="c-type"></div></div>
   <div class="field"><span class="lbl">Term</span><div class="chips" id="c-term"></div></div>
-  <div class="field row2"><div><label class="lbl" for="c-start">Start date</label><input type="date" id="c-start"></div><div id="c-endw"><label class="lbl" for="c-end">End date</label><input type="date" id="c-end"></div></div>
+  <div class="field row2"><div><label class="lbl" for="c-start">Start date</label><input type="date" id="c-start"></div><div id="c-monw"><label class="lbl" for="c-months">Number of months</label><input type="number" id="c-months" min="1" max="120" step="1" inputmode="numeric" placeholder="e.g. 6"></div></div>
+  <div class="field" id="c-endw"><label class="lbl" for="c-end">End date</label><input type="date" id="c-end"><p class="note" style="margin-top:6px">Set from the start date and the number of months. Change it and the months follow.</p></div>
 </div>
 </div>
 <div class="step" data-title="Services">
@@ -640,7 +641,7 @@ body.at-home .tabs{transform:translateY(110%);opacity:0;pointer-events:none}
   <div class="field" id="c-rows" hidden></div>
   <div class="actions" style="margin:0 0 16px"><button class="btn" type="button" id="c-add">+ Add preset service</button><button class="btn" type="button" id="c-addc">+ Add custom item</button><button class="btn" type="button" id="c-addg">+ Heading with sub-items</button></div>
   <div class="field" id="c-items" hidden></div>
-  <div class="field row2" style="align-items:end"><div><label class="lbl" for="c-disc">Discount (%)</label><input type="number" id="c-disc" min="0" max="100" value="0" inputmode="decimal"></div><div style="padding-bottom:10px"><label class="switch"><input type="checkbox" id="c-vat" checked> Add 5% VAT</label></div></div>
+  <div class="field row2" style="align-items:end"><div><label class="lbl" for="c-disc" id="c-disc-l">Discount</label><div class="conv-row"><input type="number" id="c-disc" min="0" value="0" inputmode="decimal"><select id="c-dtype" aria-label="Discount type" style="width:auto;min-width:84px"><option value="pct">%</option><option value="aed">AED</option></select></div></div><div style="padding-bottom:10px"><label class="switch"><input type="checkbox" id="c-vat" checked> Add 5% VAT</label></div></div>
 </div>
 <div class="total" aria-live="polite">
   <div class="t-lbl" id="c-tl">Total per month</div>
@@ -1313,10 +1314,14 @@ let ctType="Monthly",ctTerm="Fixed",cScopeEdited=false,cTermsEdited=false,cc=0;
 function cNew(from){const x={p:from&&!from.custom?from.p:"Apartment",s:from&&!from.custom?from.s:"2 BHK",svc:"Normal cleaning",visits:ctType==="Weekly"?1:ctType==="Monthly"?4:12};resetAuto(x);return x}
 let cItems=[cNew()];const ci=()=>cItems[cc];
 const addDays=(iso,n)=>{const d=new Date(iso+"T00:00:00");d.setDate(d.getDate()+n);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
-function defEnd(){const st=$("c-start").value||todayISO();const d=new Date(st+"T00:00:00");d.setFullYear(d.getFullYear()+1);d.setDate(d.getDate()-1);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+/* the contract length is chosen in months (no default); the end date follows from it */
+const cMonths=()=>{const m=Math.floor(num($("c-months").value));return m>0?m:null};
+function endFromMonths(m){const st=$("c-start").value||todayISO();const d=new Date(st+"T00:00:00");d.setMonth(d.getMonth()+m);d.setDate(d.getDate()-1);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
 let endEdited=false;
-function periods(){if(ctTerm!=="Fixed")return null;const a=$("c-start").value,b=$("c-end").value;if(!a||!b)return null;const days=(new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/864e5+1;if(days<=0)return null;return Math.max(1,Math.round(ctType==="Weekly"?days/7:ctType==="Monthly"?days/30.44:days/365.25))}
-function cRenderType(){chips($("c-type"),"ctype",Object.keys(PER),ctType,()=>{ctType=val("ctype");cRenderType();cChanged()});chips($("c-term"),"cterm",["Fixed","Open"],ctTerm,()=>{ctTerm=val("cterm");cRenderType();cChanged()});$("c-endw").hidden=ctTerm!=="Fixed";$("cv-l").textContent=`Visits per ${PER[ctType]}`}
+function periods(){return ctTerm==="Fixed"?cMonths():null}
+/* billing periods in one month, to turn the per-period total into a contract value */
+const PER_MONTH={Weekly:52/12,Monthly:1,Annual:1/12};
+function cRenderType(){chips($("c-type"),"ctype",Object.keys(PER),ctType,()=>{ctType=val("ctype");cRenderType();cChanged()});chips($("c-term"),"cterm",["Fixed","Open"],ctTerm,()=>{ctTerm=val("cterm");cRenderType();cChanged()});$("c-endw").hidden=$("c-monw").hidden=ctTerm!=="Fixed";$("cv-l").textContent=`Visits per ${PER[ctType]}`}
 function cRenderPicker(){const x=ci();$("c-presets").hidden=!!x.custom;pickerMode("c",x,"contract",true);if(x.custom&&!x.group)$("c-desc").placeholder="e.g. Monthly pest control";
   $("c-rate-l").textContent=x.group?"Price per visit, all sub-items (AED)":"Price per visit (AED)";rowsEditor($("c-rows"),x,()=>{cRenderItems();cCalc()});
   if(!x.custom){
@@ -1327,7 +1332,8 @@ function cRenderPicker(){const x=ci();$("c-presets").hidden=!!x.custom;pickerMod
   $("cv-out").textContent=x.visits;$("c-rate").value=x.rate;$("c-desc").value=x.desc;cRateNote();
   $("c-edit-h").hidden=cItems.length<2&&!x.custom;$("c-edit-h").textContent=cItems.length>1?`Editing item ${cc+1} of ${cItems.length}${x.custom?` (${kindOf(x)})`:""}`:x.group?"Heading with sub-items":"Custom item"}
 function cRateNote(){const x=ci();if(x.custom){$("c-ratenote").textContent=x.group?"One price per visit for the heading and all its sub-items":"Enter the price per visit";return}const lp=listPrice(x.p,x.s,SVCS.indexOf(x.svc));if(lp==null){$("c-ratenote").textContent="Not in the price list: enter the price per visit";return}$("c-ratenote").innerHTML=x.rateEdited&&num(x.rate)!==lp?`Price list: AED ${fmt(lp)} · <button type="button" class="linkbtn" id="c-ratereset">Reset</button>`:"Tap the price to change it"}
-function ct(){const lines=cItems.map(lineOf),per=r2(lines.reduce((s,l)=>s+l.sub,0));const disc=Math.min(Math.max(num($("c-disc").value),0),100),discAmt=r2(per*disc/100),net=r2(per-discAmt);const vatOn=$("c-vat").checked,vat=vatOn?r2(net*0.05):0,total=r2(net+vat);const n=periods();return {lines,per,disc,discAmt,net,vatOn,vat,total,n,value:n?r2(total*n):null,valueNet:n?r2(net*n):null}}
+function ct(){const lines=cItems.map(lineOf),per=r2(lines.reduce((s,l)=>s+l.sub,0));const aed=$("c-dtype").value==="aed",disc=Math.max(num($("c-disc").value),0),discAmt=aed?r2(Math.min(disc,per)):r2(per*Math.min(disc,100)/100),net=r2(per-discAmt);const vatOn=$("c-vat").checked,vat=vatOn?r2(net*0.05):0,total=r2(net+vat);const n=periods(),f=n?n*PER_MONTH[ctType]:0;
+  return {lines,per,disc,discAmt,discLbl:aed?`AED ${money(Math.min(disc,per))}`:`${fmt(Math.min(disc,100))}%`,net,vatOn,vat,total,n,value:n?r2(total*f):null,valueNet:n?r2(net*f):null}}
 function cDefaultScope(){const groups=[];cItems.map(lineOf).forEach(l=>{if(l.custom)return;const key=l.p+"|"+l.idx;let g=groups.find(x=>x.key===key);if(!g){g={key,head:`${l.p} – ${SVC_T[l.idx]}`,sizes:[],items:scopeOf(l)};groups.push(g)}if(!g.sizes.includes(l.s))g.sizes.push(l.s)});return groups.map(g=>`${g.head} (${g.sizes.join(", ")}):\n`+g.items.join("\n")).join("\n")}
 function cDefaultTerms(){const st=dfmt($("c-start").value),en=dfmt($("c-end").value),per=PER[ctType],t=[];
   if(ctTerm==="Fixed")t.push(`Contract period: ${st||"[start date]"} to ${en||"[end date]"}. Either party may end the contract early with 30 days' written notice.`);
@@ -1339,12 +1345,12 @@ function cDefaultTerms(){const st=dfmt($("c-start").value),en=dfmt($("c-end").va
 function cRenderItems(){const box=$("c-items");if(cItems.length<2){box.innerHTML="";box.hidden=true;return}box.hidden=false;
   box.innerHTML=`<span class="lbl">Items in this contract <span style="font-weight:500">· tap one to change it</span></span>`+cItems.map((x,i)=>{const l=lineOf(x);return `<div class="qi${i===cc?" on":""}"><button type="button" class="qi-main" data-csel="${i}"><b>${i+1}. ${esc(l.title)}</b><span>${l.group?subTxt(l):`AED ${fmt(l.unit)} × ${x.visits}`} per ${PER[ctType]} = AED ${fmt(l.sub)}</span></button><button type="button" class="linkbtn" data-crm="${i}">Remove</button></div>`}).join("")}
 let cPanel=null;
-function cChanged(){if(ctTerm==="Fixed"&&!endEdited)$("c-end").value=defEnd();if(!cScopeEdited)$("c-scope").value=cDefaultScope();if(!cTermsEdited)$("c-terms").value=cDefaultTerms();cRenderItems();cCalc()}
+function cChanged(){if(ctTerm==="Fixed"&&!endEdited)$("c-end").value=cMonths()?endFromMonths(cMonths()):"";if(!cScopeEdited)$("c-scope").value=cDefaultScope();if(!cTermsEdited)$("c-terms").value=cDefaultTerms();cRenderItems();cCalc()}
 function cCalc(){const c=ct(),per=PER[ctType];
   $("c-tl").textContent=`Total per ${per}${c.vatOn?" with VAT":""}`;$("c-num").innerHTML=`<small>AED</small>${money(c.total)}`;
   let L=c.lines.map(l=>`<div class="line"><span>${esc(l.short)}: ${l.group?subTxt(l):`${fmt(l.unit)} × ${l.visits}`}</span><b>${fmt(l.sub)}</b></div>`).join("");
-  if(c.disc>0)L+=`<div class="line"><span>Discount ${fmt(c.disc)}%</span><b>−${fmt(c.discAmt)}</b></div>`;if(c.vatOn)L+=`<div class="line"><span>VAT 5%</span><b>${fmt(c.vat)}</b></div>`;
-  $("c-lines").innerHTML=L;$("c-value").textContent=c.n?`Contract value: AED ${money(c.value)} for ${c.n} ${per}${c.n>1?"s":""}`:ctTerm==="Open"?`Open-ended: billed AED ${money(c.total)} per ${per}`:"";
+  if(c.discAmt>0)L+=`<div class="line"><span>Discount ${c.discLbl}</span><b>−${fmt(c.discAmt)}</b></div>`;if(c.vatOn)L+=`<div class="line"><span>VAT 5%</span><b>${fmt(c.vat)}</b></div>`;
+  $("c-lines").innerHTML=L;$("c-value").textContent=c.n?`Contract value: AED ${money(c.value)} for ${c.n} month${c.n>1?"s":""}`:ctTerm==="Open"?`Open-ended: billed AED ${money(c.total)} per ${per}`:"Choose the number of months on the Term step";
   cPanel&&cPanel.update()}
 $("cv-minus").onclick=()=>{ci().visits=Math.max(1,ci().visits-1);$("cv-out").textContent=ci().visits;cRenderItems();cCalc()};
 $("cv-plus").onclick=()=>{ci().visits=Math.min(999,ci().visits+1);$("cv-out").textContent=ci().visits;cRenderItems();cCalc()};
@@ -1356,7 +1362,10 @@ $("c-addc").onclick=()=>{cItems.push({custom:true,p:"",s:"",svc:"",visits:1,rate
 document.addEventListener("click",e=>{if(e.target.id==="c-ratereset"){const x=ci();resetAuto(x);cRenderPicker();cChanged();return}
   const s=e.target.closest("[data-csel]");if(s){cc=+s.dataset.csel;cRenderPicker();cRenderItems();return}
   const r=e.target.closest("[data-crm]");if(r){const i=+r.dataset.crm;cItems.splice(i,1);if(cc>=i&&cc>0)cc--;cRenderPicker();cChanged()}});
-$("c-end").addEventListener("input",()=>{endEdited=true;cChanged()});$("c-start").addEventListener("input",()=>cChanged());
+$("c-end").addEventListener("input",()=>{endEdited=true;const a=$("c-start").value,b=$("c-end").value;if(a&&b){const days=(new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/864e5+1;if(days>0)$("c-months").value=Math.max(1,Math.round(days/30.44))}cChanged()});
+$("c-months").addEventListener("input",()=>{endEdited=false;cChanged()});
+$("c-months").closest(".step").addEventListener("wiz:leave",e=>{if(ctTerm==="Fixed"&&!cMonths()){e.preventDefault();toast("Enter the number of months");$("c-months").focus()}});$("c-start").addEventListener("input",()=>cChanged());
+$("c-dtype").addEventListener("change",()=>{$("c-disc").max=$("c-dtype").value==="pct"?"100":"";cCalc()});
 $("c-scope").addEventListener("input",()=>{cScopeEdited=true});$("c-terms").addEventListener("input",()=>{cTermsEdited=true});
 $("c-scope-r").onclick=()=>{cScopeEdited=false;cChanged()};$("c-terms-r").onclick=()=>{cTermsEdited=false;cChanged()};
 ["c-disc","c-name","c-co","c-tel","c-email","c-loc","c-no","c-date"].forEach(id=>$(id).addEventListener("input",cCalc));$("c-vat").addEventListener("change",cCalc);
@@ -1383,7 +1392,7 @@ function buildContractPdf(){
   k.ensure(tot.length*6.5+30);
   tot.forEach(([lb,v])=>{k.box(TC,k.y,VC-TC,6.5,LAB);k.box(VC,k.y,R-VC,6.5);k.fit(lb,VC-2,k.y+4.4,LW,{s:8.5,a:"right"});k.fit(v,R-2,k.y+4.4,R-VC-4,{s:8.5,a:"right"});k.y+=6.5});
   doc.setFillColor(...BLACK);doc.rect(TC,k.y,R-TC,8.5,"F");k.fit(`TOTAL PER ${P.toUpperCase()}${c.vatOn?" INCL. VAT":""} (AED)`,VC-2,k.y+5.6,LW,{s:8.8,a:"right",c:[255,255,255]});k.fit(money(c.total),R-2,k.y+5.6,R-VC-4,{s:10,a:"right",c:GOLDF});k.y+=8.5;
-  if(c.n){k.box(TC,k.y,VC-TC,6.5,LAB);k.box(VC,k.y,R-VC,6.5);k.fit(`Contract period (${per}s)`,VC-2,k.y+4.4,LW,{s:8.5,a:"right"});k.txt(String(c.n),R-2,k.y+4.4,{b:1,s:8.5,a:"right"});k.y+=6.5;
+  if(c.n){k.box(TC,k.y,VC-TC,6.5,LAB);k.box(VC,k.y,R-VC,6.5);k.fit("Contract period (months)",VC-2,k.y+4.4,LW,{s:8.5,a:"right"});k.txt(String(c.n),R-2,k.y+4.4,{b:1,s:8.5,a:"right"});k.y+=6.5;
     doc.setFillColor(...GOLDF);doc.rect(TC,k.y,R-TC,8.5,"F");k.fit("TOTAL CONTRACT VALUE (AED)",VC-2,k.y+5.6,LW,{s:9,a:"right",c:BLACK});k.fit(money(c.value),R-2,k.y+5.6,R-VC-4,{s:10,a:"right",c:BLACK});k.y+=8.5}
   {const wl=k.split("Amount in words: "+(c.n?amountWords(c.value):amountWords(c.total)+` per ${per}`),W,8.3);k.y+=4.5;doc.setFont("helvetica","italic");doc.setFontSize(8.3);doc.setTextColor(...GR);doc.text(wl,R-1,k.y,{align:"right"});k.y+=wl.length*3.8+4}
   const block=(title,txt)=>{const rows=[];txt.split("\n").map(s=>s.trim()).filter(Boolean).forEach(s=>{if(/:$/.test(s)){rows.push({h:1,t:s});return}k.split("•  "+s,W-7,8.3).forEach((l,j)=>rows.push({t:j?"    "+l:l}))});if(!rows.length)return;
@@ -1398,16 +1407,16 @@ function buildContractPdf(){
   return doc}
 function cWa(){const c=ct(),per=PER[ctType];const t=[`Hi ${$("c-name").value.trim()||"there"},`,"",`Here is your ${ctType.toLowerCase()} service contract proposal from Xtreme Facilities Management:`,""];
   c.lines.forEach((l,i)=>{if(l.group)t.push(`${i+1}. ${l.title}`,...l.rows.map(r=>`   • ${r.a}${r.n?`: ${r.n}`:""}`),`   ${l.visits} visit${l.visits>1?"s":""} per ${per} × AED ${fmt(l.unit)} = AED ${fmt(l.sub)}`);else t.push(`${i+1}. ${l.title}`,`   ${l.visits} visit${l.visits>1?"s":""} per ${per} × AED ${fmt(l.unit)} = AED ${fmt(l.sub)}`)});
-  t.push("",`Total per ${per}: AED ${money(c.total)}${c.vatOn?" (incl. 5% VAT)":""}`);if(c.n)t.push(`Contract value: AED ${money(c.value)} for ${c.n} ${per}${c.n>1?"s":""} (${dfmt($("c-start").value)} to ${dfmt($("c-end").value)})`);else t.push(`Starting ${dfmt($("c-start").value)}, open-ended with 30 days' notice`);
+  t.push("",`Total per ${per}: AED ${money(c.total)}${c.vatOn?" (incl. 5% VAT)":""}`);if(c.n)t.push(`Contract value: AED ${money(c.value)} for ${c.n} month${c.n>1?"s":""} (${dfmt($("c-start").value)} to ${dfmt($("c-end").value)})`);else t.push(`Starting ${dfmt($("c-start").value)}, open-ended with 30 days' notice`);
   t.push("","Reply here to confirm and we'll send the contract for signature.","","Xtreme Facilities Management",`${PHONE} | ${WEB}`);return t.join("\n")}
 $("c-wa").onclick=()=>window.open(waLink($("c-tel").value,cWa()),"_blank","noopener");
 $("c-date").value=todayISO();$("c-start").value=todayISO();
 cRenderType();cRenderPicker();
 cPanel=sendPanel("cc",{mount:"c-send",kind:"Contracts",date:()=>$("c-date").value,to:()=>$("c-email").value.trim(),
   subject:()=>`Service Contract ${$("c-no").value.trim()} - Xtreme Facilities Management`,
-  body:()=>{const c=ct(),per=PER[ctType];return `Dear ${$("c-name").value.trim()||"Sir/Madam"},\n\nPlease find attached our ${ctType.toLowerCase()} service contract ${$("c-no").value.trim()}. The total is AED ${money(c.total)} per ${per}${c.vatOn?" including 5% VAT":""}${c.n?`, a contract value of AED ${money(c.value)} for ${c.n} ${per}${c.n>1?"s":""}`:""}.\n\nPlease sign and return a copy to confirm, and we'll schedule the first visit.`},
+  body:()=>{const c=ct(),per=PER[ctType];return `Dear ${$("c-name").value.trim()||"Sir/Madam"},\n\nPlease find attached our ${ctType.toLowerCase()} service contract ${$("c-no").value.trim()}. The total is AED ${money(c.total)} per ${per}${c.vatOn?" including 5% VAT":""}${c.n?`, a contract value of AED ${money(c.value)} for ${c.n} month${c.n>1?"s":""}`:""}.\n\nPlease sign and return a copy to confirm, and we'll schedule the first visit.`},
   filename:()=>`Service Contract ${$("c-no").value.trim()||"Xtreme"}.pdf`.replace(/[\/\\]/g,"-"),
-  check:()=>ct().lines.some(l=>l.unit>0)?null:"Enter a price for at least one item",build:buildContractPdf});
+  check:()=>ctTerm==="Fixed"&&!cMonths()?"Enter the number of months on the Term step":ct().lines.some(l=>l.unit>0)?null:"Enter a price for at least one item",build:buildContractPdf});
 cChanged();
 /* ---------- RECEIPT ---------- */
 const RM=["Cash","Bank transfer","Cheque","Card"];
@@ -1701,7 +1710,7 @@ blank();
 <script>
 (function(){
 "use strict";
-const VERSION="1.29";
+const VERSION="1.30";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const toast=m=>{const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3400)};

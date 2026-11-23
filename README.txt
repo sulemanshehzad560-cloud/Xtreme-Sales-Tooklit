@@ -1,4 +1,4 @@
-XTREME v1.29 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
+XTREME v1.30 - ONE APP FOR QUOTES, INVOICES, CONTRACTS, RECEIPTS AND COC
 =======================================================================
 
 This replaces the Xtreme Sales Toolkit on the SAME Netlify site and the SAME
@@ -6,6 +6,12 @@ GitHub repository (xtreme-sales-toolkit). The COC site can be retired afterwards
 Your existing users, Zoho WorkDrive connection and saved quotations/invoices carry over.
 The Android app keeps working: assetlinks.json is the Sales Toolkit one
 (package app.netlify.xtremesalestoolkit.twa) and is unchanged.
+
+WHAT'S NEW IN 1.30
+- Service contract: no more automatic 1-year term. On the Term step type the
+  Number of months (required for a fixed term); the end date follows from the start
+  date. Contract value = total per month x months, shown in months everywhere.
+- Contract discount can be a % or a fixed AED amount (per billing period).
 
 WHAT'S NEW IN 1.29
 - New service "Monthly Cleaning Contract" in quotations, contracts, the invoice
